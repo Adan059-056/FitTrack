@@ -9,11 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.proyectoe.IntroDescription
 import com.example.proyectoe.R
 import com.example.proyectoe.ui.components.IntroHeader
 import com.example.proyectoe.ui.components.IntroFooter
 import com.example.proyectoe.ui.components.IntroActionButton
+import com.example.proyectoe.ui.intro.componets.IntroDescription
 
 @Composable
 @Preview

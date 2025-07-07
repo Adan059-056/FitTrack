@@ -3,6 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
+    //id("com.android.application")
+    id("com.google.gms.google-services")
+
 }
 
 android {
@@ -73,4 +76,6 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-saveable")
     implementation("androidx.compose.material3:material3:1.3.2")
     implementation("androidx.constraintlayout:constraintlayout-compose-android:1.1.1")
+
+    implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
 }
