@@ -40,6 +40,7 @@ fun MonitoringSection()
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ){
+            // Se muestran datos del día
             MonitorItem(R.drawable.monitor1, "2500", "Calorias Diarias")
             MonitorItem(R.drawable.monitor2, "6h 45min", "Horas Dormidas")
             MonitorItem(R.drawable.monitor3, "2w 4days", "Haciendo Ejercicio")
