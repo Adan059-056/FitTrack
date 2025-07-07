@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
     //id("com.android.application")
     id("com.google.gms.google-services")
 
@@ -64,6 +63,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -76,6 +76,7 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-saveable")
     implementation("androidx.compose.material3:material3:1.3.2")
     implementation("androidx.constraintlayout:constraintlayout-compose-android:1.1.1")
-
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
     implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
 }

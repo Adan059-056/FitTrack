@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.example.proyectoe.data.model.Workout
+import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
     private val workouts = getData()
@@ -34,9 +35,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            FirebaseApp.initializeApp(this)
             // 1. Crea el controlador de navegación
             val workouts by remember { mutableStateOf(getData()) }
-
             val navController = rememberNavController()
 
             // 2. Obtiene la ruta actual para resaltar el ítem activo
