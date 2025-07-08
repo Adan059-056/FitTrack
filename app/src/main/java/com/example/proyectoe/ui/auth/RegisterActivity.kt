@@ -19,8 +19,8 @@ class RegisterActivity : AppCompatActivity() {
                 },
                 onNavigateBack = {
                     // Puedes volver a LoginActivity si es tu flujo deseado
-                    finish() // Simplemente cierra RegisterActivity para volver a la anterior (LoginActivity)
-                    // o puedes: startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
+                    //finish() // Simplemente cierra RegisterActivity para volver a la anterior (LoginActivity)
+                  startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
                 }
             )
         }

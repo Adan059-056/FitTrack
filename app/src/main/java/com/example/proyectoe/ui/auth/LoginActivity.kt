@@ -20,6 +20,7 @@ class LoginActivity : AppCompatActivity (){
                 onNavigateToRegister = {
 
                 }
+
             )
 
 
