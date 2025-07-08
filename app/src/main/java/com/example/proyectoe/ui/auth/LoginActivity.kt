@@ -17,7 +17,7 @@ class LoginActivity : AppCompatActivity (){
                     startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                     finish()
                 },
-                
+
                 //pasa el rollback para que cuando se le da al boton de no tienes cuenta mande al
                 // register
                 onNavigateBack = {
