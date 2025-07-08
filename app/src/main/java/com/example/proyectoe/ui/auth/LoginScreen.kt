@@ -12,7 +12,8 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    //onNavigateToRegister: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     val auth = FirebaseAuth.getInstance()
     var email by remember { mutableStateOf("") }
@@ -62,7 +63,7 @@ fun LoginScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        TextButton(onClick = onNavigateToRegister) {
+        TextButton(onClick = onNavigateBack) {
             Text("¿No tienes cuenta? Regístrate")
         }
     }
