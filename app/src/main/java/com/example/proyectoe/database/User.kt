@@ -1,0 +1,14 @@
+package com.example.proyectoe.database
+
+data class User(
+    val uid: String = "",
+    val nombre: String = "",
+    val apellidos: String = "",
+    val fechaNacimiento: String = "",
+    val peso: String = "",
+    val altura: String = "",
+    val genero: String = "",
+    val actividad: String = "",
+    val objetivo: String = "",
+    val email: String = ""
+)
