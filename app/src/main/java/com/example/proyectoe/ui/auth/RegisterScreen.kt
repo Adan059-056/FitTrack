@@ -447,6 +447,18 @@ fun RegisterScreen(
                 )
             }
         }
+        item {
+            TextButton(
+                onClick = onNavigateBack,
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Text(
+                    "Volver",
+                    color = SecondaryColor,
+                    fontSize = 14.sp
+                )
+            }
+        }
     }
 }
 

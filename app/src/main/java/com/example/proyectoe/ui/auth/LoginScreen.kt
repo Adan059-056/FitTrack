@@ -133,6 +133,12 @@ fun LoginScreen(
                 TextButton(onClick = onNavigateBack) {
                     Text("¿No tienes cuenta? Regístrate", color = Color.White)
                 }
+                TextButton(
+                    onClick = onNavigateBack,
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text("Volver", color = SecondaryColor)
+                }
             }
         }
     }
