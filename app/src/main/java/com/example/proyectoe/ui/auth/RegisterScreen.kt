@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firestore.v1.Value
 
 @Composable
 fun RegisterScreen(
@@ -18,7 +19,7 @@ fun RegisterScreen(
     val auth = FirebaseAuth.getInstance()
     var UserName by remember { mutableStateOf("") }
     var UserLastName by remember { mutableStateOf("") }
-    var UserbirdDay by remember { mutableStateOf("") }
+    var UserBirdDay by remember { mutableStateOf("") }
     var UserWeight by remember { mutableStateOf("") }
     var UserHigh by remember { mutableStateOf("") }
     var UserGender by remember { mutableStateOf("") }
@@ -56,6 +57,31 @@ fun RegisterScreen(
             value = UserHigh,
             onValueChange = {UserWeight = it},
             label = { Text("Peso(Kg)") },
+            singleLine = true
+        )
+        OutlinedTextField(
+            value = UserBirdDay,
+            onValueChange = {UserBirdDay = it},
+            label = { Text("Fecha de nacimiento") },
+            singleLine = true
+        )
+        OutlinedTextField(
+            value = UserGender,
+            onValueChange = {UserGender = it},
+            label = { Text("Genero") },
+            singleLine = true
+        )
+        OutlinedTextField(
+            value = UserHigh,
+            onValueChange = {UserHigh = it},
+            label = { Text("Altura") },
+            singleLine = true
+        )
+        //Aqui va el nivel de actividad fisica en Nada, Bajo, Moderado, Alto.
+        OutlinedTextField(
+            value = UserSportActivity,
+            onValueChange = { UserSportActivity= it},
+            label = { Text("Nivel de actividad fisica") },
             singleLine = true
         )
         OutlinedTextField(
