@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectoe.R
+import com.example.proyectoe.ui.components.MyComposePieChart
 
 @Composable
 fun MonitoringSection()
@@ -45,9 +46,38 @@ fun MonitoringSection()
             MonitorItem(R.drawable.monitor2, "6h 45min", "Horas Dormidas")
             MonitorItem(R.drawable.monitor3, "2w 4days", "Haciendo Ejercicio")
         }
-    }
-}
 
+
+    Spacer(Modifier.height(24.dp)) // Espacio antes de la gráfica
+
+Text(
+text = "Resumen Semanal", // Título para la gráfica
+color = Color.White,
+fontWeight = FontWeight.Bold,
+fontSize = 16.sp,
+modifier = Modifier.padding(start = 16.dp, bottom = 12.dp)
+)
+
+// Datos de ejemplo para la gráfica.
+// **IMPORTANTE:** En una aplicación real, estos datos deberían ser dinámicos,
+// obtenidos de un ViewModel o calculados.
+val weeklyData = mapOf(
+    "Rutinas Completadas" to 8f,
+    "Días de Descanso" to 2f,
+    "Rutinas Pendientes" to 4f
+)
+
+MyComposePieChart(
+modifier = Modifier
+.fillMaxWidth()
+.height(280.dp) // Dale una altura específica para que se muestre correctamente
+.padding(horizontal = 16.dp), // Padding horizontal para la gráfica
+data = weeklyData,
+//Text = "Actividad Semanal" // Texto central de la gráfica
+)
+// --- Fin de la Gráfica de Pastel ---
+}
+}
 @Composable
 fun MonitorItem(icon:Int,value: String,label:String)
 {
