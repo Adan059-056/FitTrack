@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
-
+import androidx.compose.material3.ButtonDefaults.buttonColors as buttonColors1
 
 
 // Definición de colores a nivel de archivo para que sean accesibles globalmente en este archivo
@@ -108,22 +108,25 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Button(onClick = {
-                    auth.signInWithEmailAndPassword(email, password)
-                        .addOnSuccessListener { onLoginSuccess() }
-                        .addOnFailureListener { error = it.message }
-                }) {
-                    Text("Ingresar")
-                }
-
-                error?.let {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(it, color = MaterialTheme.colorScheme.error)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                TextButton(onClick = onNavigateBack) {
-                    Text("¿No tienes cuenta? Regístrate")
+                Button(
+                    onClick = {
+                        if (validateFields()) {
+                            isProcessing = true
+                            auth.signInWithEmailAndPassword(email, password)
+                                .addOnSuccessListener {
+                                    isProcessing = false
+                                    onLoginSuccess()
+                                }
+                                .addOnFailureListener {
+                                    isProcessing = false
+                                    error = it.message
+                                }
+                        }
+                    },
+                    colors = buttonColors1(containerColor = PrimaryColor),
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Text("Ingresar", color = Color.White)
                 }
             }
         }
