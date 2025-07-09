@@ -26,6 +26,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator // Importar para el indicador de carga
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,8 +36,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState // Importar para observar StateFlow
+import androidx.compose.runtime.getValue // Importar para descomponer el estado
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,11 +49,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel // Importar para obtener la ViewModel
 import com.example.proyectoe.R
+import com.example.proyectoe.database.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onBack: () -> Unit = {}, onLogout: () -> Unit = {}) {
+fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la ViewModel
+                   onBack: () -> Unit = {},
+                   onLogout: () -> Unit = {}) {
+
+    val user by viewModel.user.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
     // Paleta de colores
     val darkBlue = Color(0xFF0A1128)
     val deepBlue = Color(0xFF0F1C3F)
@@ -108,24 +119,75 @@ fun ProfileScreen(onBack: () -> Unit = {}, onLogout: () -> Unit = {}) {
                         endY = 1000f
                     )
                 )
+                .padding(innerPadding) // Aplica el padding de Scaffold aquí
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                // Encabezado con foto de perfil
-                ProfileHeader(
-                    cardColor = navyBlue.copy(alpha = 0.8f),
-                    textColor = Color.White
-                )
+            when {
+                isLoading -> {
+                    // Muestra un indicador de carga mientras se obtienen los datos
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(color = Color.White)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Cargando perfil...", color = Color.White)
+                    }
+                }
+                errorMessage != null -> {
+                    // Muestra un mensaje de error si algo salió mal
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Error: $errorMessage", color = Color.Red, fontSize = 18.sp)
+                        // Opcional: un botón para reintentar
+                        Button(onClick = { viewModel.loadUserProfile() }) {
+                            Text("Reintentar")
+                        }
+                    }
+                }
+                user != null -> {
+                    // Si los datos del usuario están disponibles, muestra el perfil
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        // AQUÍ ES DONDE DEBES CORREGIR LAS LLAMADAS:
+                        ProfileHeader(
+                            cardColor = navyBlue.copy(alpha = 0.8f),
+                            textColor = Color.White,
+                            // *** PASA LOS DATOS REALES DEL USUARIO AQUÍ ***
+                            userName = "${user?.nombre} ${user?.apellidos}", // Combina nombre y apellido
+                            userEmail = user?.email ?: "N/A" // Usa el email del usuario
+                        )
 
-                // Sección de información personal
-                PersonalInfoSection(
-                    cardColor = navyBlue.copy(alpha = 0.8f),
-                    textColor = Color.White
-                )
+                        // Sección de información personal (pasamos los datos del usuario)
+                        PersonalInfoSection(
+                            cardColor = navyBlue.copy(alpha = 0.8f),
+                            textColor = Color.White,
+                            // *** PASA LOS DATOS REALES DEL USUARIO AQUÍ ***
+                            fechaNacimiento = user?.fechaNacimiento ?: "N/A",
+                            genero = user?.genero ?: "N/A",
+                            estatura = "${user?.altura ?: "N/A"} cm", // Asegúrate de añadir " cm" si quieres
+                            peso = "${user?.peso ?: "N/A"} kg",       // Asegúrate de añadir " kg" si quieres
+                            actividad = user?.actividad ?: "N/A", // Pasa el nivel de actividad
+                            objetivo = user?.objetivo ?: "N/A"
+                        )
+                    }
+                }
+                else -> {
+                    // Caso para cuando no hay usuario ni error (puede que no haya iniciado sesión)
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("No se pudo cargar el perfil. ¿Has iniciado sesión?", color = Color.White, fontSize = 16.sp)
+                    }
+                }
             }
         }
     }
@@ -134,7 +196,9 @@ fun ProfileScreen(onBack: () -> Unit = {}, onLogout: () -> Unit = {}) {
 @Composable
 fun ProfileHeader(
     cardColor: Color = MaterialTheme.colorScheme.surface,
-    textColor: Color = MaterialTheme.colorScheme.onSurface
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    userName: String, // Parámetro para el nombre del usuario
+    userEmail: String // Parámetro para el email del usuario
 ) {
     Card(
         modifier = Modifier
@@ -152,29 +216,26 @@ fun ProfileHeader(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Foto de perfil en el lado izquierdo
             BoxWithCameraIcon()
 
             Spacer(modifier = Modifier.width(24.dp))
 
-            // Información del usuario en el lado derecho
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "User Name",
+                    text = userName, // Usar el nombre del usuario
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = textColor
                 )
                 Text(
-                    text = "usuario@ejemplo.com",
+                    text = userEmail, // Usar el email del usuario
                     color = textColor.copy(alpha = 0.8f),
                     modifier = Modifier.padding(top = 4.dp)
                 )
 
-                // Botón para cambiar objetivo debajo del correo
                 val deepBlue = Color(0xFF0F1C3F)
                 Button(
                     onClick = { /* Cambiar objetivo */ },
@@ -187,7 +248,7 @@ fun ProfileHeader(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Cambiar Objetivo", fontSize = 14.sp)
+                    Text("Cambiar Foto", fontSize = 14.sp)
                 }
             }
         }
@@ -200,7 +261,7 @@ fun BoxWithCameraIcon() {
         contentAlignment = Alignment.BottomEnd
     ) {
         Image(
-            painter = painterResource(R.drawable.btn_4),
+            painter = painterResource(R.drawable.btn_4), // Asegúrate de que esta imagen exista
             contentDescription = "Foto de perfil",
             modifier = Modifier
                 .size(120.dp)
@@ -217,7 +278,7 @@ fun BoxWithCameraIcon() {
         ) {
             Icon(
                 imageVector = Icons.Default.CameraAlt,
-                contentDescription = "Cambiar foto",
+                contentDescription = "Cambiar Foto",
                 tint = Color.White,
                 modifier = Modifier
                     .size(24.dp)
@@ -229,7 +290,13 @@ fun BoxWithCameraIcon() {
 @Composable
 fun PersonalInfoSection(
     cardColor: Color = MaterialTheme.colorScheme.surface,
-    textColor: Color = MaterialTheme.colorScheme.onSurface
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    fechaNacimiento: String,
+    genero: String,
+    estatura: String,
+    peso: String,
+    actividad: String,
+    objetivo: String
 ) {
     Card(
         modifier = Modifier
@@ -249,23 +316,33 @@ fun PersonalInfoSection(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            InfoRow("Fecha de nacimiento", "06/06/2003", textColor = textColor)
+            InfoRow("Fecha de nacimiento", fechaNacimiento, textColor = textColor)
             val deepBlue = Color(0xFF0F1C3F)
             Divider(
                 modifier = Modifier.padding(vertical = 8.dp),
                 color = deepBlue.copy(alpha = 0.5f)
             )
-            InfoRow("Sexo", "Masculino", textColor = textColor)
+            InfoRow("Sexo", genero, textColor = textColor)
             Divider(
                 modifier = Modifier.padding(vertical = 8.dp),
                 color = deepBlue.copy(alpha = 0.5f)
             )
-            InfoRow("Estatura", "160 cm", textColor = textColor)
+            InfoRow("Estatura", estatura, textColor = textColor)
             Divider(
                 modifier = Modifier.padding(vertical = 8.dp),
                 color = deepBlue.copy(alpha = 0.5f)
             )
-            InfoRow("Peso", "60 kg", textColor = textColor)
+            InfoRow("Peso", peso, textColor = textColor)
+            Divider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = deepBlue.copy(alpha = 0.5f)
+            )
+            InfoRow("Nivel de Actividad", actividad, textColor = textColor)
+            Divider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = deepBlue.copy(alpha = 0.5f)
+            )
+            InfoRow("Objetivo Principal", objetivo, textColor = textColor)
 
             Spacer(modifier = Modifier.height(16.dp))
             val navyBlue = Color(0xFF1A2C5C)
@@ -278,10 +355,10 @@ fun PersonalInfoSection(
                         brush = Brush.horizontalGradient(
                             colors = listOf(deepBlue, navyBlue)
                         ),
-                        shape = MaterialTheme.shapes.medium
+                        shape = MaterialTheme.shapes.medium // Puedes usar RoundedCornerShape(12.dp) si prefieres
                     )
             ) {
-                Text("Cambiar Foto", color = Color.White)
+                Text("Editar", color = Color.White)
             }
         }
     }
