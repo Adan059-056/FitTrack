@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import com.example.proyectoe.ui.dashboard.MainActivity // Si el registro exitoso va a MainActivity
+import com.example.proyectoe.ui.intro.IntroActivity
 
 class RegisterActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,6 +17,9 @@ class RegisterActivity : AppCompatActivity() {
                     // Si el registro es exitoso, ve a la MainActivity
                     startActivity(Intent(this@RegisterActivity, MainActivity::class.java))
                     finish()
+                },
+                onNavigateIntro = {
+                    startActivity(Intent(this@RegisterActivity,IntroActivity::class.java))
                 },
                 onNavigateBack = {
                     // Puedes volver a LoginActivity si es tu flujo deseado

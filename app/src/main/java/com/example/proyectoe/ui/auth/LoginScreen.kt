@@ -31,7 +31,8 @@ private val BorderColor = Color(0xFF3A506B)      // Borde azul grisáceo
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     //onNavigateToRegister: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateIntro: () -> Unit
 ) {
     val auth = FirebaseAuth.getInstance()
     var email by remember { mutableStateOf("") }
@@ -153,7 +154,7 @@ fun LoginScreen(
                     Text("¿No tienes cuenta? Regístrate", color = Color.White)
                 }
                 TextButton(
-                    onClick = onNavigateBack,
+                    onClick = onNavigateIntro,
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
                     Text("Volver", color = SecondaryColor)

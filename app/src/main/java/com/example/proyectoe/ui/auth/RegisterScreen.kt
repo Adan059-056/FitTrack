@@ -64,7 +64,8 @@ private val BorderColor = Color(0xFF3A506B)      // Borde azul grisáceo
 @Composable
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateIntro: ()-> Unit
 ) {
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
@@ -449,7 +450,7 @@ fun RegisterScreen(
         }
         item {
             TextButton(
-                onClick = onNavigateBack,
+                onClick = onNavigateIntro,
                 modifier = Modifier.padding(bottom = 16.dp)
             ) {
                 Text(

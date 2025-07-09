@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 //import com.example.proyectoe.ui.auth.LoginScreen
 import com.example.proyectoe.ui.dashboard.MainActivity
+import com.example.proyectoe.ui.intro.IntroActivity
 
 
 class LoginActivity : AppCompatActivity (){
@@ -16,6 +17,9 @@ class LoginActivity : AppCompatActivity (){
                 onLoginSuccess = {
                     startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                     finish()
+                },
+                onNavigateIntro = {
+                    startActivity(Intent(this@LoginActivity, IntroActivity::class.java))
                 },
 
                 //pasa el rollback para que cuando se le da al boton de no tienes cuenta mande al

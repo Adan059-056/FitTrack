@@ -30,6 +30,7 @@ import com.example.proyectoe.ui.auth.RegisterScreen // Importa RegisterScreen
 import com.example.proyectoe.ui.auth.SignInScreen // **Necesitarás crear esta pantalla de Sign In**
 import com.google.firebase.auth.FirebaseAuth // Para verificar el estado de autenticación
 import com.example.proyectoe.ui.auth.RegisterScreen
+import com.example.proyectoe.ui.intro.IntroScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,10 +120,16 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateBack = {
                                     // Vuelve a la pantalla de inicio de sesión
-                                    navController.popBackStack()
+                                    //navController.popBackStack()
+                                    finish()
+                                },
+                                        onNavigateIntro = {
+                                    finish()
                                 }
                             )
                         }
+
+
 
                         // Pantalla de Inicio
                         composable("home") {
