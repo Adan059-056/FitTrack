@@ -149,7 +149,11 @@ fun RegisterScreen(
                     textColor = SecondaryColor,
                     borderColor = BorderColor
                 )
-                Divider(color = BorderColor, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                Divider(
+                    color = BorderColor,
+                    thickness = 0.5.dp,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
 
                 SimpleTextField(
                     value = userLastName,
@@ -159,14 +163,21 @@ fun RegisterScreen(
                     textColor = SecondaryColor,
                     borderColor = BorderColor
                 )
-                Divider(color = BorderColor, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                Divider(
+                    color = BorderColor,
+                    thickness = 0.5.dp,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
 
+                // === MODIFICACIÓN AQUÍ para los Dropdowns de fecha ===
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp), // Padding a nivel de Row
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), // Espacio entre los elementos del Row
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(modifier = Modifier.weight(1f)) {
+                    Box(modifier = Modifier.weight(1.5f)) {
                         SimpleDropdown(
                             selectedValue = selectedDay?.toString() ?: "",
                             onValueSelected = { selectedDay = it.toInt() },
@@ -174,7 +185,8 @@ fun RegisterScreen(
                             options = days.map { it.toString() },
                             isError = fieldErrors.contains("day"),
                             textColor = SecondaryColor,
-                            borderColor = BorderColor
+                            borderColor = BorderColor,
+                            labelFontSize = 12.sp // Ajusta el tamaño de la fuente para el label
                         )
                     }
                     Box(modifier = Modifier.weight(1.5f)) {
@@ -185,10 +197,11 @@ fun RegisterScreen(
                             options = months,
                             isError = fieldErrors.contains("month"),
                             textColor = SecondaryColor,
-                            borderColor = BorderColor
+                            borderColor = BorderColor,
+                            labelFontSize = 12.sp // Ajusta el tamaño de la fuente para el label
                         )
                     }
-                    Box(modifier = Modifier.weight(1f)) { // Corrección aquí: Usar .weight(1f) en lugar de .Weight(1f)
+                    Box(modifier = Modifier.weight(1.5f)) {
                         SimpleDropdown(
                             selectedValue = selectedYear?.toString() ?: "",
                             onValueSelected = { selectedYear = it.toInt() },
@@ -196,24 +209,36 @@ fun RegisterScreen(
                             options = years.map { it.toString() },
                             isError = fieldErrors.contains("year"),
                             textColor = SecondaryColor,
-                            borderColor = BorderColor
+                            borderColor = BorderColor,
+                            labelFontSize = 12.sp // Ajusta el tamaño de la fuente para el label
                         )
                     }
                 }
-                Divider(color = BorderColor, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                // === FIN MODIFICACIÓN ===
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp), // Padding a nivel de Row
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), // Espacio entre los elementos del Row
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
 
-                SimpleDropdown(
-                    selectedValue = selectedGender ?: "",
-                    onValueSelected = { selectedGender = it },
-                    label = "Género",
-                    options = genders,
-                    isError = fieldErrors.contains("gender"),
-                    textColor = SecondaryColor,
-                    borderColor = BorderColor
-                )
+                    //Divider(color = BorderColor, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+
+                    SimpleDropdown(
+                        selectedValue = selectedGender ?: "",
+                        onValueSelected = { selectedGender = it },
+                        label = "Género",
+                        options = genders,
+                        isError = fieldErrors.contains("gender"),
+                        textColor = SecondaryColor,
+                        borderColor = BorderColor,
+
+                        )
+                }
             }
         }
-
+        // Aqui es doinde se modifica los datos fisicos
         item {
             SectionCard(title = "Datos físicos", cardColor = CardColor) {
                 SimpleTextField(
@@ -224,8 +249,10 @@ fun RegisterScreen(
                     isError = fieldErrors.contains("weight"),
                     textColor = SecondaryColor,
                     borderColor = BorderColor
+
                 )
-                Divider(color = BorderColor, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                //Divider(color = BorderColor, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+
 
                 SimpleTextField(
                     value = userHeight,
@@ -236,31 +263,45 @@ fun RegisterScreen(
                     textColor = SecondaryColor,
                     borderColor = BorderColor
                 )
-                Divider(color = BorderColor, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
 
-                SimpleDropdown(
-                    selectedValue = selectedActivityLevel ?: "",
-                    onValueSelected = { selectedActivityLevel = it },
-                    label = "Nivel de actividad",
-                    options = activityLevels,
-                    isError = fieldErrors.contains("activity"),
-                    textColor = SecondaryColor,
-                    borderColor = BorderColor
-                )
-                Divider(color = BorderColor, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
 
-                SimpleDropdown(
-                    selectedValue = selectedObjective ?: "",
-                    onValueSelected = { selectedObjective = it },
-                    label = "Objetivo",
-                    options = objectives,
-                    isError = fieldErrors.contains("objective"),
-                    textColor = SecondaryColor,
-                    borderColor = BorderColor
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp), // Padding a nivel de Row
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), // Espacio entre los elementos del Row
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SimpleDropdown(
+                        selectedValue = selectedActivityLevel ?: "",
+                        onValueSelected = { selectedActivityLevel = it },
+                        label = "Nivel de actividad",
+                        options = activityLevels,
+                        isError = fieldErrors.contains("activity"),
+                        textColor = SecondaryColor,
+                        borderColor = BorderColor
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp), // Padding a nivel de Row
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), // Espacio entre los elementos del Row
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    SimpleDropdown(
+                        selectedValue = selectedObjective ?: "",
+                        onValueSelected = { selectedObjective = it },
+                        label = "Objetivo",
+                        options = objectives,
+                        isError = fieldErrors.contains("objective"),
+                        textColor = SecondaryColor,
+                        borderColor = BorderColor
+                    )
+                }
             }
         }
-
         item {
             SectionCard(title = "Cuenta", cardColor = CardColor) {
                 SimpleTextField(
@@ -382,6 +423,8 @@ fun RegisterScreen(
     }
 }
 
+// ... (SectionCard, SimpleTextField, PasswordField sin cambios relevantes aquí) ...
+
 @Composable
 fun SectionCard(
     title: String,
@@ -415,12 +458,13 @@ fun SimpleTextField(
     placeholder: String = "",
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     textColor: Color = Color.Black,
-    borderColor: Color = Color.Gray
+    borderColor: Color = Color.Gray,
+    labelFontSize: androidx.compose.ui.unit.TextUnit = 16.sp // Nuevo parámetro para el tamaño de la fuente del label
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, color = if (isError) ErrorColor else SecondaryColor) },
+        label = { Text(label, color = if (isError) ErrorColor else SecondaryColor, fontSize = labelFontSize) }, // Usa el nuevo parámetro
         placeholder = { Text(placeholder, color = Color(0xFFA0A0B0)) },
         isError = isError,
         singleLine = true,
@@ -448,14 +492,15 @@ fun PasswordField(
     isError: Boolean,
     modifier: Modifier = Modifier,
     textColor: Color = Color.Black,
-    borderColor: Color = Color.Gray
+    borderColor: Color = Color.Gray,
+    labelFontSize: androidx.compose.ui.unit.TextUnit = 16.sp // Nuevo parámetro para el tamaño de la fuente del label
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, color = if (isError) ErrorColor else SecondaryColor) },
+        label = { Text(label, color = if (isError) ErrorColor else SecondaryColor, fontSize = labelFontSize) }, // Usa el nuevo parámetro
         isError = isError,
         singleLine = true,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -484,6 +529,7 @@ fun PasswordField(
     )
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SimpleDropdown(
@@ -494,24 +540,23 @@ fun SimpleDropdown(
     isError: Boolean,
     modifier: Modifier = Modifier,
     textColor: Color = Color.Black,
-    borderColor: Color = Color.Gray
+    borderColor: Color = Color.Gray,
+    labelFontSize: androidx.compose.ui.unit.TextUnit = 14.sp // Nuevo parámetro con un valor por defecto más pequeño
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+        modifier = modifier.fillMaxWidth() // Se eliminó el padding de aquí para manejarlo en el Row
     ) {
         OutlinedTextField(
             readOnly = true,
             value = selectedValue,
             onValueChange = {},
-            label = { Text(label, color = if (isError) ErrorColor else SecondaryColor) },
+            label = { Text(label, color = if (isError) ErrorColor else SecondaryColor, fontSize = labelFontSize) }, // Usa el nuevo parámetro
             isError = isError,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }, // <-- Línea corregida aquí, se eliminó 'tint'
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
