@@ -16,6 +16,15 @@ fun RegisterScreen(
     onNavigateBack: () -> Unit // Este es el callback para "volver al login"
 ) {
     val auth = FirebaseAuth.getInstance()
+    var UserName by remember { mutableStateOf("") }
+    var UserLastName by remember { mutableStateOf("") }
+    var UserbirdDay by remember { mutableStateOf("") }
+    var UserWeight by remember { mutableStateOf("") }
+    var UserHigh by remember { mutableStateOf("") }
+    var UserGender by remember { mutableStateOf("") }
+    var UserSportActivity by remember { mutableStateOf("") }
+    var UserObjetive by remember { mutableStateOf("") }
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -28,9 +37,27 @@ fun RegisterScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Crear Cuenta", style = MaterialTheme.typography.titleLarge)
+        Text("Crea tu cuenta de FitTrack", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))
-
+        OutlinedTextField(
+            value = UserName,
+            onValueChange = {UserName = it },
+            label = { Text("Nombre") },
+            singleLine = true
+        )
+        OutlinedTextField(
+            value =UserLastName,
+            onValueChange = {UserLastName = it},
+            label = { Text("Apellidos") },
+            singleLine = true
+        )
+        //Este texFiel hay que cambiarlo por un list selector con pesos definidos en Kg
+        OutlinedTextField(
+            value = UserHigh,
+            onValueChange = {UserWeight = it},
+            label = { Text("Peso(Kg)") },
+            singleLine = true
+        )
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
