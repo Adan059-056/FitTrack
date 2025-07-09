@@ -128,6 +128,11 @@ fun LoginScreen(
                 ) {
                     Text("Ingresar", color = Color.White)
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                TextButton(onClick = onNavigateBack) {
+                    Text("¿No tienes cuenta? Regístrate", color = Color.White)
+                }
             }
         }
     }
