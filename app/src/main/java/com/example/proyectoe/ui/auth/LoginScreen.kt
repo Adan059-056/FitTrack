@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.material3.ButtonDefaults.buttonColors as buttonColors1
 
@@ -123,11 +124,29 @@ fun LoginScreen(
                                 }
                         }
                     },
-                    colors = buttonColors1(containerColor = PrimaryColor),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .height(50.dp),
+                    shape = MaterialTheme.shapes.small,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryColor,
+                        disabledContainerColor = PrimaryColor.copy(alpha = 0.5f)
+                    ),
+                    enabled = !isProcessing
                 ) {
-                    Text("Ingresar", color = Color.White)
+                    if (isProcessing) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Text("Ingresar", fontSize = 16.sp, color = Color.White)
+                    }
                 }
+            }
+
 
                 Spacer(modifier = Modifier.height(16.dp))
                 TextButton(onClick = onNavigateBack) {
@@ -142,6 +161,6 @@ fun LoginScreen(
             }
         }
     }
-}
+
 
 // Aqui es donde vsa la logica de inicio de secion
