@@ -3,35 +3,22 @@ package com.example.proyectoe.ui.dashboard
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import com.example.proyectoe.data.datasource.WorkoutDataProvider.getData
+import com.example.proyectoe.database.StartScreen
 import com.example.proyectoe.ui.Favorites.FavoritesScreen
 import com.example.proyectoe.ui.Food.FoodScreen
 import com.example.proyectoe.ui.Profile.ProfileScreen
-import com.example.proyectoe.ui.dashboard.components.MainBottonBar
-import com.example.proyectoe.ui.dashboard.MainContent
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import com.example.proyectoe.data.model.Workout
-import com.example.proyectoe.database.StartScreen
-import com.google.firebase.FirebaseApp
-import com.example.proyectoe.ui.auth.RegisterScreen // Importa RegisterScreen
-import com.example.proyectoe.ui.auth.SignInScreen // **Necesitarás crear esta pantalla de Sign In**
-import com.google.firebase.auth.FirebaseAuth // Para verificar el estado de autenticación
 import com.example.proyectoe.ui.auth.RegisterScreen
-import com.example.proyectoe.ui.intro.IntroScreen
+import com.example.proyectoe.ui.auth.SignInScreen
+import com.example.proyectoe.ui.dashboard.components.MainBottonBar
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,7 +32,6 @@ class MainActivity : ComponentActivity() {
             val auth = FirebaseAuth.getInstance()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
-
             val showBottomBar = currentRoute !in listOf("start", "singin_route", "register_route")
 
             MaterialTheme {
@@ -66,17 +52,19 @@ class MainActivity : ComponentActivity() {
                         startDestination = "start",
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        // ✅ Splash / Session check
+                        // Splash o verificación de sesión
                         composable("start") {
                             StartScreen(
                                 onUserLoggedIn = {
                                     navController.navigate("home") {
                                         popUpTo("start") { inclusive = true }
+                                        launchSingleTop = true
                                     }
                                 },
                                 onUserNotLoggedIn = {
                                     navController.navigate("singin_route") {
                                         popUpTo("start") { inclusive = true }
+                                        launchSingleTop = true
                                     }
                                 }
                             )
@@ -88,6 +76,7 @@ class MainActivity : ComponentActivity() {
                                 onSignInSuccess = {
                                     navController.navigate("home") {
                                         popUpTo("singin_route") { inclusive = true }
+                                        launchSingleTop = true
                                     }
                                 },
                                 onNavigateToRegister = {
@@ -101,6 +90,7 @@ class MainActivity : ComponentActivity() {
                                 onRegisterSuccess = {
                                     navController.navigate("home") {
                                         popUpTo("register_route") { inclusive = true }
+                                        launchSingleTop = true
                                     }
                                 },
                                 onNavigateBack = {
@@ -130,6 +120,7 @@ class MainActivity : ComponentActivity() {
                                     auth.signOut()
                                     navController.navigate("singin_route") {
                                         popUpTo("home") { inclusive = true }
+                                        launchSingleTop = true
                                     }
                                 }
                             )
