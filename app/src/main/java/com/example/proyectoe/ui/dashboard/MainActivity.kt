@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.example.proyectoe.data.model.Workout
+import com.example.proyectoe.database.StartScreen
 import com.google.firebase.FirebaseApp
 import com.example.proyectoe.ui.auth.RegisterScreen // Importa RegisterScreen
 import com.example.proyectoe.ui.auth.SignInScreen // **Necesitarás crear esta pantalla de Sign In**
@@ -35,130 +36,107 @@ import com.example.proyectoe.ui.intro.IntroScreen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-// Inicializa Firebase al inicio de la Activity
+
+        // Inicializa Firebase
         FirebaseApp.initializeApp(this)
 
-        setContent{
+        setContent {
             val navController = rememberNavController()
-            val auth = FirebaseAuth.getInstance()// Obtén la instancia de Firebase Auth
-
-            // Determina la ruta de inicio basada en si el usuario está autenticado
-            val startDestination = if (auth.currentUser != null) {
-                "home" // Si hay un usuario logueado, ve a la pantalla principal
-            } else {
-                "singin_route" // Si no hay usuario, ve a la pantalla de inicio de sesión
-            }
+            val auth = FirebaseAuth.getInstance()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
-            val showBottomBar = remember(currentRoute) { // Usa currentRoute como clave para remember
-                currentRoute !in listOf("singin_route", "register_route")
-            }
 
-    /*private val workouts = getData()
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            FirebaseApp.initializeApp(this)
-            // 1. Crea el controlador de navegación
-            val workouts by remember { mutableStateOf(getData()) }
+            val showBottomBar = currentRoute !in listOf("start", "singin_route", "register_route")
 
-            //NavActivitie
-            val navController = rememberNavController()
-
-            // 2. Obtiene la ruta actual para resaltar el ítem activo
-            val currentRoute = remember {
-                derivedStateOf {
-                    navController.currentBackStackEntry?.destination?.route ?: "home"
-                }
-            }.value
-*/
             MaterialTheme {
                 Scaffold(
-                    containerColor = Color(0Xff101322),
+                    containerColor = Color(0xFF101322),
                     bottomBar = {
-                        if (showBottomBar) { // Muestra la barra inferior solo si no estás en auth
-
-                            // 3. Pasamos el navController y la ruta actual
+                        if (showBottomBar) {
                             MainBottonBar(
                                 navController = navController,
-                                currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-                                    ?: "home"
+                                currentRoute = currentRoute ?: "home"
                             )
                         }
                     }
                 ) { innerPadding ->
-                    // 4. Configuración del sistema de navegación
+
                     NavHost(
                         navController = navController,
-                        startDestination = startDestination, // Ruta de inicio dinámica,
+                        startDestination = "start",
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        // Rutas de autenticación
+                        // ✅ Splash / Session check
+                        composable("start") {
+                            StartScreen(
+                                onUserLoggedIn = {
+                                    navController.navigate("home") {
+                                        popUpTo("start") { inclusive = true }
+                                    }
+                                },
+                                onUserNotLoggedIn = {
+                                    navController.navigate("singin_route") {
+                                        popUpTo("start") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
+                        // Autenticación
                         composable("singin_route") {
-                            // **Aquí pasarás tu IntroFooter con la navegación a Register**
                             SignInScreen(
                                 onSignInSuccess = {
-                                    // Si el login es exitoso, navega a la pantalla principal y limpia el back stack
                                     navController.navigate("home") {
-                                        popUpTo("singin_route") { inclusive = true } // Elimina las pantallas de auth
+                                        popUpTo("singin_route") { inclusive = true }
                                     }
                                 },
                                 onNavigateToRegister = {
-                                    // Navega a la pantalla de registro
                                     navController.navigate("register_route")
                                 }
                             )
                         }
+
                         composable("register_route") {
                             RegisterScreen(
                                 onRegisterSuccess = {
-                                    // Si el registro es exitoso, navega a la pantalla principal y limpia el back stack
                                     navController.navigate("home") {
-                                        popUpTo("singin_route") { inclusive = true } // Elimina las pantallas de auth
+                                        popUpTo("register_route") { inclusive = true }
                                     }
                                 },
                                 onNavigateBack = {
-                                    // Vuelve a la pantalla de inicio de sesión
-                                    //navController.popBackStack()
                                     finish()
                                 },
-                                        onNavigateIntro = {
+                                onNavigateIntro = {
                                     finish()
                                 }
                             )
                         }
 
-
-
-                        // Pantalla de Inicio
+                        // App principal
                         composable("home") {
                             val workouts = getData()
                             MainContent(workouts = workouts)
                         }
-                        // Pantalla de Favoritos
                         composable("favorites") {
                             FavoritesScreen()
                         }
-                        // Pantalla de Alimentos
                         composable("food") {
                             FoodScreen()
                         }
-                        // Pantalla de Perfil
                         composable("profile") {
                             ProfileScreen(
                                 onBack = { navController.popBackStack() },
                                 onLogout = {
-                                    auth.signOut() // Cerrar sesión en Firebase
+                                    auth.signOut()
                                     navController.navigate("singin_route") {
-                                        popUpTo("home") { inclusive = true } // Elimina el back stack de la app
+                                        popUpTo("home") { inclusive = true }
                                     }
                                 }
                             )
                         }
                     }
-                    }
-                    }
+                }
             }
         }
     }
+}
