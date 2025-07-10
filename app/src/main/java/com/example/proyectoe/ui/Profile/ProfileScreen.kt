@@ -291,7 +291,12 @@ fun ProfileHeader(
                         onValueChange = onNameChanged,
                         label = { Text("Nombre Completo") },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.colors( // Use TextFieldDefaults.colors()
+                            focusedTextColor = Color.Red, // Set your desired color when focused
+                            unfocusedTextColor = Color.Blue // Set your desired color when not focused
+                            // You can also customize other colors like containerColor, cursorColor, etc.
+                        )
                     )
                 } else {
                     Text(
@@ -408,14 +413,14 @@ fun PersonalInfoSection(
                     modifier = Modifier.fillMaxWidth(),
 
                     //AQUI ES DONDE se cambia el color de texto cuando se edita el textField
-                    /*
+
                     colors = TextFieldDefaults.colors( // Use TextFieldDefaults.colors()
                         focusedTextColor = Color.Red, // Set your desired color when focused
                         unfocusedTextColor = Color.Blue // Set your desired color when not focused
                         // You can also customize other colors like containerColor, cursorColor, etc.
                     )
 
-                     */
+
                 )
 
             }
@@ -519,6 +524,11 @@ fun InfoRowEditable(
                     .weight(1f)
                     .padding(start = 8.dp),
                 singleLine = true,
+                colors = TextFieldDefaults.colors( // Use TextFieldDefaults.colors()
+                    focusedTextColor = Color.Red, // Set your desired color when focused
+                    unfocusedTextColor = Color.Blue // Set your desired color when not focused
+                    // You can also customize other colors like containerColor, cursorColor, etc.
+                ),
                 trailingIcon = if (suffix.isNotBlank()) {
                     { Text(suffix, color = textColor.copy(alpha = 0.8f)) }
                 } else null
