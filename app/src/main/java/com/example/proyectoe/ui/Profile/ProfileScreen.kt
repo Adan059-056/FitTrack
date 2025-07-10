@@ -56,7 +56,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
 
+import androidx.compose.material3.TextFieldDefaults
 
+private val SecondaryColor = Color(0xFFFFFFFF)   // Blanco para textos
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la ViewModel
@@ -396,15 +398,26 @@ fun PersonalInfoSection(
                 color = Color.White,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-
+//ss
             if (isEditing) {
                 OutlinedTextField(
                     value = apellidos,
                     onValueChange = onApellidosChanged,
                     label = { Text("Apellidos") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+
+                    //AQUI ES DONDE se cambia el color de texto cuando se edita el textField
+                    /*
+                    colors = TextFieldDefaults.colors( // Use TextFieldDefaults.colors()
+                        focusedTextColor = Color.Red, // Set your desired color when focused
+                        unfocusedTextColor = Color.Blue // Set your desired color when not focused
+                        // You can also customize other colors like containerColor, cursorColor, etc.
+                    )
+
+                     */
                 )
+
             }
 
 
