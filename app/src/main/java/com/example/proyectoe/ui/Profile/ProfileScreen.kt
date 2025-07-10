@@ -26,7 +26,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator // Importar para el indicador de carga
+import androidx.compose.material3.CircularProgressIndicator // indicador de carga
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,8 +37,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState // Importar para observar StateFlow
-import androidx.compose.runtime.getValue // Importar para descomponer el estado
+import androidx.compose.runtime.collectAsState //observar StateFlow
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,9 +49,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel // Importar para obtener la ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel // para obtener la ViewModel
 import com.example.proyectoe.R
 import com.example.proyectoe.database.User
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,7 +65,10 @@ fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la View
 
     val user by viewModel.user.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isSuccess by viewModel.isSuccess.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val isEditing by viewModel.isEditing.collectAsState() //Observar el estado de edición
+    val editableUser by viewModel.editableUser.collectAsState()
 
     // Paleta de colores
     val darkBlue = Color(0xFF0A1128)
@@ -87,10 +94,11 @@ fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la View
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Cambiar objetivo */ }) {
+                    // Icono de lápiz para TOGGLE EDIT MODE
+                    IconButton(onClick = { viewModel.toggleEditMode() }) {
                         Icon(
                             Icons.Default.Edit,
-                            contentDescription = "Cambiar Objetivo",
+                            contentDescription = if (isEditing) "Salir de edición" else "Editar Perfil",
                             tint = Color.White
                         )
                     }
@@ -119,11 +127,10 @@ fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la View
                         endY = 1000f
                     )
                 )
-                .padding(innerPadding) // Aplica el padding de Scaffold aquí
+                .padding(innerPadding)
         ) {
             when {
                 isLoading -> {
-                    // Muestra un indicador de carga mientras se obtienen los datos
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
@@ -142,44 +149,92 @@ fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la View
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text("Error: $errorMessage", color = Color.Red, fontSize = 18.sp)
-                        // Opcional: un botón para reintentar
+                        //botón para reintentar
                         Button(onClick = { viewModel.loadUserProfile() }) {
                             Text("Reintentar")
                         }
                     }
                 }
                 user != null -> {
-                    // Si los datos del usuario están disponibles, muestra el perfil
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
                     ) {
-                        // AQUÍ ES DONDE DEBES CORREGIR LAS LLAMADAS:
+                        //Mensaje de Éxito
+                        if (isSuccess != null) {
+                            Text(
+                                text = isSuccess!!,
+                                color = Color.Green,
+                                fontSize = 16.sp,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.Black.copy(alpha = 0.5f))
+                                    .padding(8.dp)
+                                    .align(Alignment.CenterHorizontally)
+                            )
+                            LaunchedEffect(isSuccess) {
+                                delay(3000)
+                                viewModel.clearSuccessMessage()
+                            }
+                        }
+
                         ProfileHeader(
                             cardColor = navyBlue.copy(alpha = 0.8f),
                             textColor = Color.White,
-                            // *** PASA LOS DATOS REALES DEL USUARIO AQUÍ ***
-                            userName = "${user?.nombre} ${user?.apellidos}", // Combina nombre y apellido
-                            userEmail = user?.email ?: "N/A" // Usa el email del usuario
+                            userName = if (isEditing) editableUser?.nombre ?: "" else "${user?.nombre} ${user?.apellidos}",
+                            userEmail = if (isEditing) editableUser?.email ?: "" else user?.email ?: "N/A",
+                            isEditing = isEditing,
+                            onNameChanged = { viewModel.updateEditableName(it) },
+                            onEmailChanged = { /* viewModel.updateEditableEmail(it) */ }
                         )
 
-                        // Sección de información personal (pasamos los datos del usuario)
                         PersonalInfoSection(
                             cardColor = navyBlue.copy(alpha = 0.8f),
                             textColor = Color.White,
-                            // *** PASA LOS DATOS REALES DEL USUARIO AQUÍ ***
-                            fechaNacimiento = user?.fechaNacimiento ?: "N/A",
-                            genero = user?.genero ?: "N/A",
-                            estatura = "${user?.altura ?: "N/A"} cm", // Asegúrate de añadir " cm" si quieres
-                            peso = "${user?.peso ?: "N/A"} kg",       // Asegúrate de añadir " kg" si quieres
-                            actividad = user?.actividad ?: "N/A", // Pasa el nivel de actividad
-                            objetivo = user?.objetivo ?: "N/A"
+                            fechaNacimiento = editableUser?.fechaNacimiento ?: "N/A",
+                            genero = editableUser?.genero ?: "N/A",
+                            estatura = editableUser?.altura ?: "N/A",
+                            peso = editableUser?.peso ?: "N/A",
+                            actividad = editableUser?.actividad ?: "N/A",
+                            objetivo = editableUser?.objetivo ?: "N/A",
+                            apellidos = editableUser?.apellidos ?: "N/A",
+                            isEditing = isEditing,
+                            onFechaNacimientoChanged = { viewModel.updateEditableFechaNacimiento(it) },
+                            onGeneroChanged = { viewModel.updateEditableGenero(it) },
+                            onEstaturaChanged = { viewModel.updateEditableAltura(it) },
+                            onPesoChanged = { viewModel.updateEditablePeso(it) },
+                            onActividadChanged = { viewModel.updateEditableActividad(it) },
+                            onObjetivoChanged = { viewModel.updateEditableObjetivo(it) },
+                            onApellidosChanged = { viewModel.updateEditableApellidos(it) }
                         )
+                        if (isEditing) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceAround
+                            ) {
+                                Button(
+                                    onClick = { viewModel.saveProfileChanges() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = deepBlue),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Guardar Cambios", color = Color.White)
+                                }
+                                Spacer(Modifier.width(16.dp))
+                                Button(
+                                    onClick = { viewModel.toggleEditMode() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Cancelar", color = Color.White)
+                                }
+                            }
+                        }
                     }
                 }
                 else -> {
-                    // Caso para cuando no hay usuario ni error (puede que no haya iniciado sesión)
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
@@ -197,8 +252,11 @@ fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la View
 fun ProfileHeader(
     cardColor: Color = MaterialTheme.colorScheme.surface,
     textColor: Color = MaterialTheme.colorScheme.onSurface,
-    userName: String, // Parámetro para el nombre del usuario
-    userEmail: String // Parámetro para el email del usuario
+    userName: String,
+    userEmail: String,
+    isEditing: Boolean,
+    onNameChanged: (String) -> Unit,
+    onEmailChanged: (String) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -206,7 +264,7 @@ fun ProfileHeader(
             .padding(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.DarkGray.copy(alpha = 0.8f) // Fondo gris
+            containerColor = Color.DarkGray.copy(alpha = 0.8f)
         )
 
     ) {
@@ -224,14 +282,28 @@ fun ProfileHeader(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
+                // Nombre de usuario - condicional para Text o OutlinedTextField
+                if (isEditing) {
+                    OutlinedTextField(
+                        value = userName,
+                        onValueChange = onNameChanged,
+                        label = { Text("Nombre Completo") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    Text(
+                        text = userName,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp)) // Espacio para el email
+
                 Text(
-                    text = userName, // Usar el nombre del usuario
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor
-                )
-                Text(
-                    text = userEmail, // Usar el email del usuario
+                    text = userEmail,
                     color = textColor.copy(alpha = 0.8f),
                     modifier = Modifier.padding(top = 4.dp)
                 )
@@ -248,7 +320,7 @@ fun ProfileHeader(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Cambiar Foto", fontSize = 14.sp)
+                    Text("Cambiar Objetivo", fontSize = 14.sp)
                 }
             }
         }
@@ -261,7 +333,7 @@ fun BoxWithCameraIcon() {
         contentAlignment = Alignment.BottomEnd
     ) {
         Image(
-            painter = painterResource(R.drawable.btn_4), // Asegúrate de que esta imagen exista
+            painter = painterResource(R.drawable.btn_4),
             contentDescription = "Foto de perfil",
             modifier = Modifier
                 .size(120.dp)
@@ -278,7 +350,7 @@ fun BoxWithCameraIcon() {
         ) {
             Icon(
                 imageVector = Icons.Default.CameraAlt,
-                contentDescription = "Cambiar Foto",
+                contentDescription = "Cambiar foto",
                 tint = Color.White,
                 modifier = Modifier
                     .size(24.dp)
@@ -296,7 +368,16 @@ fun PersonalInfoSection(
     estatura: String,
     peso: String,
     actividad: String,
-    objetivo: String
+    objetivo: String,
+    apellidos: String,
+    isEditing: Boolean,
+    onFechaNacimientoChanged: (String) -> Unit, // Callbacks para cada campo
+    onGeneroChanged: (String) -> Unit,
+    onEstaturaChanged: (String) -> Unit,
+    onPesoChanged: (String) -> Unit,
+    onActividadChanged: (String) -> Unit,
+    onObjetivoChanged: (String) -> Unit,
+    onApellidosChanged: (String) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -316,63 +397,122 @@ fun PersonalInfoSection(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            InfoRow("Fecha de nacimiento", fechaNacimiento, textColor = textColor)
+            if (isEditing) {
+                OutlinedTextField(
+                    value = apellidos,
+                    onValueChange = onApellidosChanged,
+                    label = { Text("Apellidos") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+
+            InfoRowEditable(
+                label = "Fecha de nacimiento",
+                value = fechaNacimiento,
+                textColor = textColor,
+                isEditing = isEditing,
+                onValueChange = onFechaNacimientoChanged
+            )
             val deepBlue = Color(0xFF0F1C3F)
             Divider(
                 modifier = Modifier.padding(vertical = 8.dp),
                 color = deepBlue.copy(alpha = 0.5f)
             )
-            InfoRow("Sexo", genero, textColor = textColor)
+            InfoRowEditable(
+                label = "Sexo",
+                value = genero,
+                textColor = textColor,
+                isEditing = isEditing,
+                onValueChange = onGeneroChanged
+            )
             Divider(
                 modifier = Modifier.padding(vertical = 8.dp),
                 color = deepBlue.copy(alpha = 0.5f)
             )
-            InfoRow("Estatura", estatura, textColor = textColor)
+            InfoRowEditable(
+                label = "Estatura",
+                value = estatura,
+                textColor = textColor,
+                isEditing = isEditing,
+                onValueChange = onEstaturaChanged,
+                suffix = " cm"
+            )
             Divider(
                 modifier = Modifier.padding(vertical = 8.dp),
                 color = deepBlue.copy(alpha = 0.5f)
             )
-            InfoRow("Peso", peso, textColor = textColor)
+            InfoRowEditable(
+                label = "Peso",
+                value = peso,
+                textColor = textColor,
+                isEditing = isEditing,
+                onValueChange = onPesoChanged,
+                suffix = " kg"
+            )
             Divider(
                 modifier = Modifier.padding(vertical = 8.dp),
                 color = deepBlue.copy(alpha = 0.5f)
             )
-            InfoRow("Nivel de Actividad", actividad, textColor = textColor)
+            InfoRowEditable(
+                label = "Nivel de Actividad",
+                value = actividad,
+                textColor = textColor,
+                isEditing = isEditing,
+                onValueChange = onActividadChanged
+            )
             Divider(
                 modifier = Modifier.padding(vertical = 8.dp),
                 color = deepBlue.copy(alpha = 0.5f)
             )
-            InfoRow("Objetivo Principal", objetivo, textColor = textColor)
+            InfoRowEditable(
+                label = "Objetivo Principal",
+                value = objetivo,
+                textColor = textColor,
+                isEditing = isEditing,
+                onValueChange = onObjetivoChanged
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
-            val navyBlue = Color(0xFF1A2C5C)
-            Button(
-                onClick = { /* ... */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(deepBlue, navyBlue)
-                        ),
-                        shape = MaterialTheme.shapes.medium // Puedes usar RoundedCornerShape(12.dp) si prefieres
-                    )
-            ) {
-                Text("Editar", color = Color.White)
-            }
+
         }
     }
 }
 
+// Composable para manejar el modo de visualización/edición de una fila de información
 @Composable
-fun InfoRow(label: String, value: String, textColor: Color) {
+fun InfoRowEditable(
+    label: String,
+    value: String,
+    textColor: Color,
+    isEditing: Boolean,
+    onValueChange: (String) -> Unit,
+    suffix: String = "" // Para unidades como "cm" o "kg"
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(label, fontWeight = FontWeight.Medium, color = textColor)
-        Text(value, color = textColor.copy(alpha = 0.8f))
+        if (isEditing) {
+            OutlinedTextField(
+                value = value.removeSuffix(suffix),
+                onValueChange = { newValue -> onValueChange(newValue) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp),
+                singleLine = true,
+                trailingIcon = if (suffix.isNotBlank()) {
+                    { Text(suffix, color = textColor.copy(alpha = 0.8f)) }
+                } else null
+            )
+
+        } else {
+            Text(value, color = textColor.copy(alpha = 0.8f))
+        }
     }
 }
