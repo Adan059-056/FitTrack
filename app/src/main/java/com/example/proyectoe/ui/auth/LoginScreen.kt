@@ -14,12 +14,11 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
-import androidx.compose.material3.ButtonDefaults.buttonColors as buttonColors1
-
+import com.example.proyectoe.ui.theme.CardColor
 
 // Definición de colores a nivel de archivo para que sean accesibles globalmente en este archivo
 private val BackgroundColor = Color(0xFF0F172A) // Fondo azul oscuro
-private val CardColor = Color(0xFF1A2C50)       // Tarjetas azul medio
+      // Tarjetas azul medio
 private val PrimaryColor = Color(0xFFF97316)     // Naranja brillante para botones
 private val SecondaryColor = Color(0xFFFFFFFF)   // Blanco para textos
 private val ErrorColor = Color(0xFFFF6B6B)       // Rojo suave para errores

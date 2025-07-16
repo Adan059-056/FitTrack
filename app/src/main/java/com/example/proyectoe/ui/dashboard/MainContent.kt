@@ -22,11 +22,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.app.Application // Para el factory de AndroidViewModel
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import com.example.proyectoe.ui.Profile.ProfileViewModel
 import com.example.proyectoe.ui.dashboard.components.UserResume
-//import com.example.proyectoe.ui.dashboard.components.UserResume
+import androidx.compose.foundation.layout.fillMaxSize // Important for the LazyColumn
+
 
 
 @Composable
@@ -59,23 +61,29 @@ fun MainContent(
     LaunchedEffect(Unit) {
         profileViewModel.loadUserProfile()
     }
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())) {
-        Spacer(Modifier.height(16.dp))
-        Header(userName = user?.nombre ?: "Usuario",
-            profilePhotoUri = profilePhotoUri)
-        //SearchBar()
-        UserResume()
-        //Text("Resumen")
-        MonitoringSection()
-        Spacer(Modifier.height(16.dp))
-        BannerCard()
-        Spacer(Modifier.height(16.dp))
-        OtherWorkoutsHeader()
-        Spacer(Modifier.height(16.dp))
+    LazyColumn (
+        modifier = modifier.fillMaxSize()
+    ){
+        item {
+    Spacer(Modifier.height(16.dp))
+        }
+        item {
+            Header(
+                userName = user?.nombre ?: "Usuario",
+                profilePhotoUri = profilePhotoUri
+            )
+            //SearchBar()
+            UserResume()
+            //Text("Resumen")
+            MonitoringSection()
+            Spacer(Modifier.height(16.dp))
+            BannerCard()
+            Spacer(Modifier.height(16.dp))
+            OtherWorkoutsHeader()
+            Spacer(Modifier.height(16.dp))
 
-        WorkOutList(workouts)
-        Spacer(Modifier.height(16.dp))
+            WorkOutList(workouts)
+            Spacer(Modifier.height(16.dp))
+        }
     }
 }

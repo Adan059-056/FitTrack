@@ -2,12 +2,14 @@ package com.example.proyectoe.ui.dashboard.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column // Importar Column
+import androidx.compose.foundation.layout.Column
+
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,66 +18,76 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+import com.example.proyectoe.ui.theme.CardColor
+//import com.example.proyectoe.ui.auth.SectionCard
 import com.example.proyectoe.ui.components.MyComposePieChart
-import com.example.proyectoe.ui.theme.BackgroundColor // Asumiendo que está definida
+import com.example.proyectoe.ui.theme.BackgroundColor
+
+private val BorderColor = Color(0xFF3A506B)
 
 @Composable
 fun UserResume() {
-    LazyColumn(
+    Column (
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundColor)
-            .padding(24.dp), // Aplicar el padding directamente al LazyColumn
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp) // Espaciado entre secciones
     ) {
         // Sección "Resumen"
-        item {
+
             Text(
                 "Resumen",
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                // No se necesita constrainAs aquí, LazyColumn maneja la disposición vertical
-                //modifier = Modifier.fillMaxWidth() // Llenar el ancho para un mejor control de centrado
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+                    .padding(horizontal = 16.dp)
             )
         }
 
-        // Sección "Círculo de Actividad" y Gráfico de Pastel
-        item {
-            Column( // Usar Column para organizar el título y el gráfico verticalmente dentro de este elemento
-                horizontalAlignment = Alignment.CenterHorizontally,
-                //modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(CardColor),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Círculo de Actividad", // Título para el gráfico
+                    text = "Circulo de Actividad", // Título para la gráfica
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    modifier = Modifier.padding(bottom = 12.dp) // Añadir padding debajo del título
+                    modifier = Modifier
+                        .padding(bottom = 12.dp)
                 )
-
+                Divider(
+                    color = BorderColor,
+                    thickness = 0.5.dp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
+                )
+// Datos de ejemplo para la gráfica.
+// **IMPORTANTE:** En una aplicación real, estos datos deberían ser dinámicos,
+// obtenidos de un ViewModel o calculados.
                 val weeklyData = mapOf(
                     "Rutinas Completadas" to 8f,
                     "Días de Descanso" to 2f,
                     "Rutinas Pendientes" to 4f
                 )
-
                 MyComposePieChart(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(280.dp) // Dar una altura específica
-                        .padding(horizontal = 16.dp), // Padding horizontal para el gráfico
+                        .height(280.dp) // Dale una altura específica para que se muestre correctamente
+                        .padding(horizontal = 16.dp), // Padding horizontal para la gráfica
                     data = weeklyData,
-                    // Text = "Actividad Semanal" // Si MyComposePieChart soporta un texto central
+//Text = "Actividad Semanal" // Texto central de la gráfica
                 )
             }
         }
 
-        // Puedes añadir más bloques `item { ... }` aquí para contenido adicional
-        // Por ejemplo:
-        // item {
-        //     Text("Otra sección", color = Color.White, fontSize = 18.sp, modifier = Modifier.padding(top = 16.dp))
-        // }
-    }
-}
