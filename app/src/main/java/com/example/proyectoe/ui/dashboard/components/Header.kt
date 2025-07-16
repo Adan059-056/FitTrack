@@ -19,6 +19,7 @@ import android.net.Uri
 import coil.compose.rememberAsyncImagePainter // <-- Para rememberAsyncImagePainter
 import androidx.compose.ui.draw.clip // <-- Para el modificador .clip()
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun Header(userName: String,
@@ -27,7 +28,7 @@ fun Header(userName: String,
         .fillMaxWidth()
         .padding(horizontal = 16.dp, vertical = 16.dp)
     ){
-        val (welcomeRef,nameRef,profileRef) = createRefs()
+        val (welcomeRef,nameRef,profileRef,resumenRef) = createRefs()
         Text(
             text = "Bienvenido de nuevo",
             color = Color.White,
@@ -61,5 +62,6 @@ fun Header(userName: String,
                 },
             contentScale = ContentScale.Crop
         )
+
     }
 }

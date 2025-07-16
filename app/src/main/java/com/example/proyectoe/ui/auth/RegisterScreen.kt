@@ -50,9 +50,10 @@ import com.example.proyectoe.database.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Calendar
+import com.example.proyectoe.ui.theme.BackgroundColor
 
 // Definición de colores a nivel de archivo para que sean accesibles globalmente en este archivo
-private val BackgroundColor = Color(0xFF0F172A) // Fondo azul oscuro
+
 private val CardColor = Color(0xFF1A2C50)       // Tarjetas azul medio
 private val PrimaryColor = Color(0xFFF97316)     // Naranja brillante para botones
 private val SecondaryColor = Color(0xFFFFFFFF)   // Blanco para textos

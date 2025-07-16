@@ -22,8 +22,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.app.Application // Para el factory de AndroidViewModel
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import com.example.proyectoe.ui.Profile.ProfileViewModel
+import com.example.proyectoe.ui.dashboard.components.UserResume
+//import com.example.proyectoe.ui.dashboard.components.UserResume
 
 
 @Composable
@@ -62,7 +65,9 @@ fun MainContent(
         Spacer(Modifier.height(16.dp))
         Header(userName = user?.nombre ?: "Usuario",
             profilePhotoUri = profilePhotoUri)
-        SearchBar()
+        //SearchBar()
+        UserResume()
+        //Text("Resumen")
         MonitoringSection()
         Spacer(Modifier.height(16.dp))
         BannerCard()
