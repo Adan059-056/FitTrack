@@ -10,5 +10,7 @@ data class User(
     val genero: String = "",
     val actividad: String = "",
     val objetivo: String = "",
-    val email: String = ""
+    val email: String = "",
+    val photoFileName: String? = null
+    //val photoUrl: String? = null
 )

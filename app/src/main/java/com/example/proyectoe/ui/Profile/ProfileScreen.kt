@@ -56,14 +56,69 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.widget.Toast
+
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.remember // Para recordar el Context
+import androidx.compose.ui.platform.LocalContext // Para obtener el Context
+
+import coil.compose.rememberAsyncImagePainter
+
+import android.os.Build // Para Build.VERSION.SDK_INT
+import androidx.core.content.ContextCompat
+
 import androidx.compose.material3.TextFieldDefaults
 
+
+
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.runtime.remember // Puede que ya esté, no importa si se duplica
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.rememberAsyncImagePainter // <-- ¡Esta es clave para cargar desde URL/URI!
+
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.AndroidViewModel
+import android.app.Application
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.CreationExtras
+
+
+import androidx.compose.ui.platform.LocalContext // Para obtener el contexto
+import androidx.lifecycle.ViewModel // <-- ¡ASEGÚRATE DE QUE ESTA ESTÉ!
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 private val SecondaryColor = Color(0xFFFFFFFF)   // Blanco para textos
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la ViewModel
-                   onBack: () -> Unit = {},
-                   onLogout: () -> Unit = {}) {
+fun ProfileScreen(
+    // CAMBIA ESTA SECCIÓN COMPLETA
+    viewModel: ProfileViewModel = run {
+        val context = LocalContext.current // Obtenemos el Context Composable aquí
+        val application = context.applicationContext as Application // Obtenemos el Application context aquí
+
+        // Definimos el factory aquí, fuera del viewModel() directamente
+        viewModel(
+            factory = object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+                    if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
+                        @Suppress("UNCHECKED_CAST")
+                        return ProfileViewModel(application) as T // Usamos la 'application' capturada
+                    }
+                    throw IllegalArgumentException("Unknown ViewModel class")
+                }
+            }
+        )
+    }, // <-- Asegúrate de que esta coma esté si hay más parámetros
+    onBack: () -> Unit = {},
+    onLogout: () -> Unit = {}
+) {
 
     val user by viewModel.user.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -71,6 +126,30 @@ fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la View
     val errorMessage by viewModel.errorMessage.collectAsState()
     val isEditing by viewModel.isEditing.collectAsState() //Observar el estado de edición
     val editableUser by viewModel.editableUser.collectAsState()
+    val profilePhotoUri by viewModel.profilePhotoUri.collectAsState()
+    val context = LocalContext.current
+
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.updateProfilePhotoUri(uri) // Actualiza la URI en la ViewModel
+            // Si quieres que se guarde automáticamente al seleccionar, llama a la función de guardado aquí
+            // viewModel.uploadProfilePhotoAndSaveProfileChanges()
+        }
+    }
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permiso concedido, lanzar el selector de imágenes
+            pickImageLauncher.launch("image/*") // Solicita cualquier tipo de imagen
+        } else {
+            // Permiso denegado, informar al usuario
+            Toast.makeText(context, "Permiso para acceder a la galería denegado.", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     // Paleta de colores
     val darkBlue = Color(0xFF0A1128)
@@ -179,6 +258,9 @@ fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la View
                                 delay(3000)
                                 viewModel.clearSuccessMessage()
                             }
+                            LaunchedEffect(Unit) {
+                                viewModel.loadUserProfile()
+                            }
                         }
 
                         ProfileHeader(
@@ -188,8 +270,34 @@ fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la View
                             userEmail = if (isEditing) editableUser?.email ?: "" else user?.email ?: "N/A",
                             isEditing = isEditing,
                             onNameChanged = { viewModel.updateEditableName(it) },
-                            onEmailChanged = { /* viewModel.updateEditableEmail(it) */ }
+                            onEmailChanged = { /* viewModel.updateEditableEmail(it) */ },
+                            // AÑADE ESTOS PARÁMETROS AQUÍ PARA PASÁRSELOS A PROFILEHEADER
+                            onCameraClick = {
+                                when {
+                                    ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.READ_MEDIA_IMAGES
+                                    ) == PackageManager.PERMISSION_GRANTED -> {
+                                        pickImageLauncher.launch("image/*")
+                                    }
+                                    ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.READ_EXTERNAL_STORAGE
+                                    ) == PackageManager.PERMISSION_GRANTED -> {
+                                        pickImageLauncher.launch("image/*")
+                                    }
+                                    else -> {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                            requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                                        } else {
+                                            requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                                        }
+                                    }
+                                }
+                            },
+                            profilePhotoUri = profilePhotoUri
                         )
+
 
                         PersonalInfoSection(
                             cardColor = navyBlue.copy(alpha = 0.8f),
@@ -218,7 +326,7 @@ fun ProfileScreen( viewModel: ProfileViewModel = viewModel(), // Inyecta la View
                                 horizontalArrangement = Arrangement.SpaceAround
                             ) {
                                 Button(
-                                    onClick = { viewModel.saveProfileChanges() },
+                                    onClick = { viewModel.saveProfileAndPhotoChanges() },
                                     colors = ButtonDefaults.buttonColors(containerColor = deepBlue),
                                     modifier = Modifier.weight(1f)
                                 ) {
@@ -258,7 +366,9 @@ fun ProfileHeader(
     userEmail: String,
     isEditing: Boolean,
     onNameChanged: (String) -> Unit,
-    onEmailChanged: (String) -> Unit
+    onEmailChanged: (String) -> Unit,
+    onCameraClick: () -> Unit,
+    profilePhotoUri: Uri?
 ) {
     Card(
         modifier = Modifier
@@ -276,7 +386,11 @@ fun ProfileHeader(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            BoxWithCameraIcon()
+            BoxWithCameraIcon(
+                onCameraClick = onCameraClick, // Pasa el callback recibido
+                profilePhotoUri = profilePhotoUri, // Pasa la URI de la foto recibida
+                isEditing = isEditing
+            )
 
             Spacer(modifier = Modifier.width(24.dp))
 
@@ -335,12 +449,26 @@ fun ProfileHeader(
 }
 
 @Composable
-fun BoxWithCameraIcon() {
+fun BoxWithCameraIcon(
+    // Recibe el controlador para lanzar la galería
+    onCameraClick: () -> Unit, // NUEVO: Callback para el click en el icono de cámara
+    profilePhotoUri: Uri?, // NUEVO: La URI de la foto seleccionada
+    isEditing: Boolean
+) {
     Box(
         contentAlignment = Alignment.BottomEnd
     ) {
+        // Carga la imagen:
+        // 1. Si hay una URI local, cárgala.
+        // 2. Si no, usa el recurso por defecto.
+        val painter = if (profilePhotoUri != null) {
+            rememberAsyncImagePainter(model = profilePhotoUri)
+        } else {
+            painterResource(R.drawable.btn_4)
+        }
+
         Image(
-            painter = painterResource(R.drawable.btn_4),
+            painter = painter, // Usa el painter dinámico
             contentDescription = "Foto de perfil",
             modifier = Modifier
                 .size(120.dp)
@@ -348,8 +476,9 @@ fun BoxWithCameraIcon() {
             contentScale = ContentScale.Crop
         )
         val deepBlue = Color(0xFF0F1C3F)
+        if(isEditing){
         IconButton(
-            onClick = { /* Cambiar foto */ },
+            onClick = onCameraClick, // Usa el callback aquí
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
@@ -365,6 +494,7 @@ fun BoxWithCameraIcon() {
         }
     }
 }
+    }
 
 @Composable
 fun PersonalInfoSection(

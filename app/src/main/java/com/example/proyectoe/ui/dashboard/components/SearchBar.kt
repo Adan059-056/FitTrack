@@ -33,7 +33,7 @@ fun SearchBar(){
             .height(50.dp)
             .padding(horizontal = 16.dp),
         placeholder = {
-            Text(text="Search Workout...",
+            Text(text="Buscar Ejercicio...",
                 color = Color.White,
                 fontStyle = FontStyle.Italic,
                 fontSize = 16.sp

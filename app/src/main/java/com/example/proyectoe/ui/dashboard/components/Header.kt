@@ -15,9 +15,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.example.proyectoe.R
+import android.net.Uri
+import coil.compose.rememberAsyncImagePainter // <-- Para rememberAsyncImagePainter
+import androidx.compose.ui.draw.clip // <-- Para el modificador .clip()
+import androidx.compose.foundation.shape.CircleShape
 
 @Composable
-fun Header(){
+fun Header(userName: String,
+           profilePhotoUri: Uri?){
     ConstraintLayout (modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp, vertical = 16.dp)
@@ -31,7 +36,7 @@ fun Header(){
                 start.linkTo(parent.start)
             }
         )
-        Text(text="User...",
+        Text(text=userName,
             color = Color.White,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.constrainAs(nameRef){
@@ -39,11 +44,17 @@ fun Header(){
                 start.linkTo(parent.start)
                 bottom.linkTo(profileRef.bottom)
             })
+        val painter = if (profilePhotoUri != null) {
+            rememberAsyncImagePainter(model = profilePhotoUri)
+        } else {
+            painterResource(R.drawable.btn_4) // Imagen por defecto
+        }
         Image(
-            painter = painterResource(R.drawable.btn_4),
-            contentDescription = null,
+            painter = painter, // <-- ¡Usa el painter con la foto del usuario!
+            contentDescription = "Foto de perfil del usuario",
             modifier = Modifier
                 .size(50.dp)
+                .clip(CircleShape) // Para hacerla circular
                 .constrainAs(profileRef){
                     top.linkTo(parent.top)
                     end.linkTo(parent.end)

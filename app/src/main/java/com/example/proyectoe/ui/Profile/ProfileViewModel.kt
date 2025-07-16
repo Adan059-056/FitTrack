@@ -5,12 +5,22 @@ import androidx.lifecycle.viewModelScope
 import com.example.proyectoe.database.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+//import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import android.net.Uri
 
-class ProfileViewModel : ViewModel() {
+import android.content.Context
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+
+import android.app.Application // <-- ¡NUEVA IMPORTACIÓN!
+import androidx.lifecycle.AndroidViewModel
+
+class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
@@ -23,6 +33,11 @@ class ProfileViewModel : ViewModel() {
 
     private val _isSuccess = MutableStateFlow<String?>(null)
     val isSuccess: StateFlow<String?> = _isSuccess
+
+    private val _profilePhotoUri = MutableStateFlow<Uri?>(null)
+    val profilePhotoUri: StateFlow<Uri?> = _profilePhotoUri
+
+    private val appContext = application.applicationContext
 
     fun clearSuccessMessage() {
         _isSuccess.value = null
@@ -38,6 +53,7 @@ class ProfileViewModel : ViewModel() {
 
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
+    //private val storage = FirebaseStorage.getInstance()
 
     init {
         loadUserProfile()
@@ -47,6 +63,7 @@ class ProfileViewModel : ViewModel() {
         _isLoading.value = true
         _errorMessage.value = null
         _isSuccess.value = null
+
         viewModelScope.launch {
             try {
                 val userId = auth.currentUser?.uid
@@ -56,15 +73,35 @@ class ProfileViewModel : ViewModel() {
                         val userData = documentSnapshot.toObject(User::class.java)
                         _user.value = userData
                         _editableUser.value = userData?.copy() // Inicializa editableUser con una copia de los datos actuales
+
+//                        val storedPhotoUrl = userData?.photoUrl
+//                        if (storedPhotoUrl != null && storedPhotoUrl.isNotEmpty()) {
+//                            _profilePhotoUri.value = Uri.parse(storedPhotoUrl)
+//                        } else {
+//                            _profilePhotoUri.value = null // Asegurar que sea nulo si no hay URL
+//                        }
+                        val storedPhotoFileName = userData?.photoFileName
+                        if (storedPhotoFileName != null && storedPhotoFileName.isNotEmpty()) {
+                            val file = File(appContext.filesDir, storedPhotoFileName) // <-- Usa appContext
+                            if (file.exists()) {
+                                _profilePhotoUri.value = Uri.fromFile(file)
+                            } else {
+                                _profilePhotoUri.value = null
+                            }
+                        } else {
+                            _profilePhotoUri.value = null
+                        }
                     } else {
                         _errorMessage.value = "No se encontraron datos para el usuario."
                         _user.value = null
                         _editableUser.value = null
+                        _profilePhotoUri.value = null
                     }
                 } else {
                     _errorMessage.value = "Usuario no autenticado."
                     _user.value = null
                     _editableUser.value = null
+                    _profilePhotoUri.value = null
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error al cargar el perfil: ${e.message}"
@@ -75,18 +112,32 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    //Función para cambiar el modo de edición
+
     fun toggleEditMode() {
         _isEditing.value = !_isEditing.value
         _errorMessage.value = null
         _isSuccess.value = null
-        // Cuando entramos en modo edición, hacemos una copia limpia del usuario actual para editar
-        // Cuando salimos de modo edición sin guardar, descartamos los cambios pendientes
+
         if (_isEditing.value) {
-            _editableUser.value = _user.value?.copy() // Reinicia la copia para editar
-        } else {
-            // Si salimos sin guardar, podemos resetear editableUser a los datos originales
             _editableUser.value = _user.value?.copy()
+            // Al entrar en modo edición, reinicia la URI local a la foto del usuario
+            val currentPhotoFileName = _user.value?.photoFileName
+            _profilePhotoUri.value = if (currentPhotoFileName != null && currentPhotoFileName.isNotEmpty()) {
+                val file = File(appContext.filesDir, currentPhotoFileName) // <-- Usa appContext
+                if (file.exists()) Uri.fromFile(file) else null
+            } else {
+                null
+            }
+        } else {
+            _editableUser.value = _user.value?.copy()
+            // Al salir del modo edición sin guardar, vuelve a la foto guardada
+            val currentPhotoFileName = _user.value?.photoFileName
+            _profilePhotoUri.value = if (currentPhotoFileName != null && currentPhotoFileName.isNotEmpty()) {
+                val file = File(appContext.filesDir, currentPhotoFileName) // <-- Usa appContext
+                if (file.exists()) Uri.fromFile(file) else null
+            } else {
+                null
+            }
         }
     }
 
@@ -124,43 +175,78 @@ class ProfileViewModel : ViewModel() {
     }
 
     //Función para guardar los cambios en Firestore
-    fun saveProfileChanges() {
+    fun saveProfileAndPhotoChanges() {
         _isLoading.value = true
         _errorMessage.value = null
         _isSuccess.value = null
         viewModelScope.launch {
             val userId = auth.currentUser?.uid
             val userToSave = _editableUser.value
+            val currentSelectedPhotoUri = _profilePhotoUri.value // Esta es la URI TEMPORAL de la galería
 
-            if (userId != null && userToSave != null) {
-                try {
-                    // Crea un mapa con solo los campos que quieres actualizar
-                    val updates = hashMapOf(
-                        "nombre" to userToSave.nombre,
-                        "apellidos" to userToSave.apellidos,
-                        "fechaNacimiento" to userToSave.fechaNacimiento,
-                        "peso" to userToSave.peso,
-                        "altura" to userToSave.altura,
-                        "genero" to userToSave.genero,
-                        "actividad" to userToSave.actividad,
-                        "objetivo" to userToSave.objetivo,
-                        "email" to userToSave.email // El email podría no cambiar, pero lo incluimos
-                    )
+            if (userId == null) {
+                _errorMessage.value = "Usuario no autenticado."
+                _isLoading.value = false
+                return@launch
+            }
+            if (userToSave == null) {
+                _errorMessage.value = "No hay datos de usuario para guardar."
+                _isLoading.value = false
+                return@launch
+            }
 
-                    db.collection("usuarios").document(userId).update(updates as Map<String, Any>).await()
-                    _user.value = userToSave // Actualiza el usuario original con los cambios guardados
-                    _isEditing.value = false // Sale del modo edición
-                    _isSuccess.value = "Perfil actualizado con éxito." // Establece el mensaje de éxito aquí
-                } catch (e: Exception) {
-                    _errorMessage.value = "Error al guardar los cambios: ${e.message}"
-                    println("Error al guardar los cambios: ${e.message}")
-                } finally {
-                    _isLoading.value = false
+            try {
+                var photoFileNameToSave: String? = userToSave.photoFileName // Nombre del archivo actual
+
+                // Si se ha seleccionado una nueva URI (de la galería) y no es ya un archivo local
+                // (currentSelectedPhotoUri.scheme == "content" indica una URI de la galería)
+                if (currentSelectedPhotoUri != null && currentSelectedPhotoUri.scheme == "content") {
+                    val newFileName = "profile_photo_${userId}_${System.currentTimeMillis()}.jpg"
+                    val destinationFile = File(appContext.filesDir, newFileName) // <-- Usa appContext
+
+                    appContext.contentResolver.openInputStream(currentSelectedPhotoUri)?.use { inputStream -> // <-- Usa appContext
+                        FileOutputStream(destinationFile).use { outputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+                    photoFileNameToSave = newFileName
+                    _profilePhotoUri.value = Uri.fromFile(destinationFile)
                 }
-            } else {
-                _errorMessage.value = "No se puede guardar: usuario no autenticado o datos no disponibles."
+
+                // Prepara las actualizaciones para Firestore
+                val updates: Map<String, Any?> = mapOf(
+                    "nombre" to userToSave.nombre,
+                    "apellidos" to userToSave.apellidos,
+                    "fechaNacimiento" to userToSave.fechaNacimiento,
+                    "peso" to userToSave.peso,
+                    "altura" to userToSave.altura,
+                    "genero" to userToSave.genero,
+                    "actividad" to userToSave.actividad,
+                    "objetivo" to userToSave.objetivo,
+                    "email" to userToSave.email,
+                    "photoFileName" to photoFileNameToSave // Guarda el nombre del archivo local
+                )
+
+                db.collection("usuarios").document(userId).update(updates).await()
+
+                _user.value = userToSave.copy(photoFileName = photoFileNameToSave)
+                _isEditing.value = false
+                _isSuccess.value = "Perfil actualizado con éxito (localmente)."
+
+            } catch (e: IOException) {
+                _errorMessage.value = "Error al guardar la foto localmente: ${e.message}"
+                println("Error al guardar la foto localmente: ${e.message}")
+            } catch (e: Exception) {
+                _errorMessage.value = "Error al guardar los cambios en Firestore: ${e.message}"
+                println("Error al guardar los cambios en Firestore: ${e.message}")
+            } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+
+    fun updateProfilePhotoUri(uri: Uri?) {
+        _profilePhotoUri.value = uri
     }
 }

@@ -47,9 +47,22 @@ dependencies {
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore.ktx)
+    implementation("com.google.firebase:firebase-storage-ktx")
 
     //Navegacion
     implementation(libs.androidx.navigation.compose)
+
+    //foto
+    implementation("io.coil-kt:coil-compose:2.6.0") // O la última versión estable
+    implementation("androidx.activity:activity-compose:1.9.0")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0") // O la última versión estable (2.7.0, 2.8.0-rc02, etc.)
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.0") // O la última versión estable
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
+
+    // Para ViewModel con Compose (ESTA TAMBIÉN ES CLAVE)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0") // O la última versión estable (2.7.0, 2.8.0-rc02, etc.)
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
