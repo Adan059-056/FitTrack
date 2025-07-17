@@ -52,6 +52,22 @@ import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Calendar
 import com.example.proyectoe.ui.theme.BackgroundColor
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult // Para el selector de imágenes
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.ContentScale
+
+import coil.compose.rememberAsyncImagePainter // Para cargar la imagen
+import androidx.compose.ui.platform.LocalContext // Para obtener el contexto de la app
+import java.io.File // manejo de archivos
+import java.io.FileOutputStream // Para escribir archivos
+import java.io.IOException
+
+
+import androidx.compose.foundation.border // Para el borde del botón
+
 // Definición de colores a nivel de archivo para que sean accesibles globalmente en este archivo
 
 private val CardColor = Color(0xFF1A2C50)       // Tarjetas azul medio
@@ -70,6 +86,8 @@ fun RegisterScreen(
 ) {
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
+    val context = LocalContext.current
+
 
     // Estados para los datos del usuario
     var userName by remember { mutableStateOf("") }
@@ -103,6 +121,16 @@ fun RegisterScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var fieldErrors by remember { mutableStateOf(setOf<String>()) }
     var isProcessing by remember { mutableStateOf(false) }
+
+    // Para subir la foto
+    var profilePhotoUri by remember { mutableStateOf<Uri?>(null) } // URI temporal de la galería
+    var photoFileNameToSave by remember { mutableStateOf<String?>(null) }
+
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        profilePhotoUri = uri // Actualiza la URI cuando se selecciona una imagen
+    }
 
     fun validateFields(): Boolean {
         val errors = mutableSetOf<String>()
@@ -167,6 +195,45 @@ fun RegisterScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         }
+
+        item { //para el boton de subir la foto
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally, // Centra el botón
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = { pickImageLauncher.launch("image/*") }, // Lanza el selector de imagen
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text(
+                        text = if (profilePhotoUri != null) "Cambiar Foto" else "Seleccionar Foto de Perfil",
+                        color = Color.White
+                    )
+                }
+                // muestra la foto seleccionada en el registro
+                if (profilePhotoUri != null) {
+                    val currentPhotoPainter = rememberAsyncImagePainter(model = profilePhotoUri)
+
+                    Image(
+                        painter = currentPhotoPainter,
+                        contentDescription = "Foto de perfil seleccionada",
+                        modifier = Modifier
+                            .size(96.dp)
+                            .clip(CircleShape)
+                            .border(2.dp, PrimaryColor, CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+        }
+
 
         item {
             SectionCard(
@@ -388,36 +455,82 @@ fun RegisterScreen(
                         isProcessing = true
                         val fechaNacimiento = "${selectedDay} ${selectedMonth}, ${selectedYear}"
 
+                        // 1. Intentar registrar el usuario con Firebase Auth
                         auth.createUserWithEmailAndPassword(email, password)
-                            .addOnSuccessListener { result ->
-                                val uid = result.user?.uid ?: ""
-                                val newUser = User(
-                                    uid = uid,
-                                    nombre = userName,
-                                    apellidos = userLastName,
-                                    fechaNacimiento = fechaNacimiento,
-                                    peso = userWeight,
-                                    altura = userHeight,
-                                    genero = selectedGender ?: "",
-                                    actividad = selectedActivityLevel ?: "",
-                                    objetivo = selectedObjective ?: "",
-                                    email = email
-                                )
-                                db.collection("usuarios").document(uid).set(newUser)
-                                    .addOnSuccessListener {
-                                        isProcessing = false
-                                        onRegisterSuccess()
+                            .addOnSuccessListener { authResult ->
+                                val uid =
+                                    authResult.user?.uid // Obtenemos el UID real del nuevo usuario
+                                if (uid != null) {
+                                    var finalPhotoFileName: String? =
+                                        null // <-- ¡Esta variable es clave!
+
+                                    // 2. Si hay una URI de foto seleccionada, intentamos guardarla
+                                    if (profilePhotoUri != null) { // <-- ¡Este bloque es clave para guardar la foto!
+                                        try {
+                                            // Usamos el UID real del usuario para el nombre del archivo
+                                            val newFileName =
+                                                "profile_photo_${uid}_${System.currentTimeMillis()}.jpg"
+                                            val destinationFile =
+                                                File(context.filesDir, newFileName)
+
+                                            context.contentResolver.openInputStream(profilePhotoUri!!)
+                                                ?.use { inputStream ->
+                                                    FileOutputStream(destinationFile).use { outputStream ->
+                                                        inputStream.copyTo(outputStream)
+                                                    }
+                                                }
+                                            finalPhotoFileName =
+                                                newFileName // Asignamos el nombre del archivo guardado
+                                            println("DEBUG: Foto guardada localmente: $finalPhotoFileName") // Debug log
+                                        } catch (e: IOException) {
+                                            println("ERROR: Fallo al guardar la foto localmente: ${e.message}") // Debug log de error
+                                            errorMessage =
+                                                "Error al guardar la foto de perfil. Intente de nuevo."
+                                            // No se detiene el registro, solo la foto no se guarda
+                                        }
+                                    } else {
+                                        println("DEBUG: No hay foto de perfil seleccionada para guardar.") // Debug log
                                     }
+
+                                    // 3. Guardar los datos del usuario (incluyendo el nombre del archivo de la foto) en Firestore
+                                    val newUser = User(
+                                        uid = uid,
+                                        nombre = userName,
+                                        apellidos = userLastName,
+                                        fechaNacimiento = fechaNacimiento,
+                                        peso = userWeight,
+                                        altura = userHeight,
+                                        genero = selectedGender ?: "",
+                                        actividad = selectedActivityLevel ?: "",
+                                        objetivo = selectedObjective ?: "",
+                                        email = email,
+                                        photoFileName = finalPhotoFileName
+                                    )
+                                    db.collection("usuarios").document(uid).set(newUser)
+                                        .addOnSuccessListener {
+                                            isProcessing = false
+                                            println("DEBUG: Datos de usuario guardados en Firestore. photoFileName: $finalPhotoFileName") // Debug log
+                                            onRegisterSuccess()
+                                        }
+                                        .addOnFailureListener { e ->
+                                            isProcessing = false
+                                            errorMessage =
+                                                "Error al guardar datos de usuario en Firestore: ${e.message}"
+                                            println("ERROR: Fallo al guardar datos de usuario en Firestore: ${e.message}")
+                                        }
+                                } else {
+                                    isProcessing = false
+                                    errorMessage = "Error de registro: UID no disponible."
+                                    println("ERROR: UID no disponible después del registro de autenticación.") // Debug log de error
+                                }
+                                }
                                     .addOnFailureListener { e ->
                                         isProcessing = false
-                                        errorMessage = e.message
+                                        errorMessage = "Error de autenticación: ${e.message}"
+                                        println("ERROR: Fallo en autenticación de Firebase: ${e.message}")
                                     }
+
                             }
-                            .addOnFailureListener { e ->
-                                isProcessing = false
-                                errorMessage = e.message
-                            }
-                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
