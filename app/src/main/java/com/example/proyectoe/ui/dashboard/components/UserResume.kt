@@ -78,9 +78,8 @@ fun UserResume() {
 // **IMPORTANTE:** En una aplicación real, estos datos deberían ser dinámicos,
 // obtenidos de un ViewModel o calculados.
             val weeklyData = mapOf(
-                "Rutinas Completadas" to 8f,
-                "Días de Descanso" to 2f,
-                "Rutinas Pendientes" to 4f
+                "100 de" to 10f,
+                "200 KCAL" to 10f
             )
             MyComposePieChart(
                 modifier = Modifier
