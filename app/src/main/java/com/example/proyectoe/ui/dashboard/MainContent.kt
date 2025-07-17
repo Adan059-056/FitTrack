@@ -30,6 +30,7 @@ import com.example.proyectoe.ui.dashboard.components.UserResume
 import androidx.compose.foundation.layout.fillMaxSize // Important for the LazyColumn
 import com.example.proyectoe.ui.dashboard.components.UserResume // Import UserResume
 import androidx.compose.ui.Alignment
+//import com.example.proyectoe.ui.dashboard.components.miniStatCard
 
 
 @Composable
@@ -76,6 +77,7 @@ fun MainContent(
             )
             //SearchBar()
             UserResume()
+            //MiniStatCard()
             //Text("Resumen")
             MonitoringSection()
             Spacer(Modifier.height(16.dp))

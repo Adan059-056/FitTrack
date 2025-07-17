@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Spacer
 import com.example.proyectoe.ui.theme.CardColor
 import com.example.proyectoe.ui.components.MyComposePieChart
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.text.style.LineHeightStyle
+
 private val BorderColor = Color(0xFF3A506B)
 
 @Composable
@@ -50,7 +53,7 @@ fun UserResume() {
         title = "Circulo de Actividad",
         cardColor = CardColor,
         modifier = Modifier
-    ){
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -92,5 +95,41 @@ fun UserResume() {
         }
     }
 
-    Spacer(Modifier.height(16.dp))
+   Spacer(Modifier.height(16.dp))
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(0.9f),
+            //.padding(horizontal = 16.dp),
+           // .background(CardColor),
+        horizontalArrangement = Arrangement.SpaceBetween, // Pushes cards to edges of the row, maximizing space between them
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        MiniStatCard(
+            title = "Conteo",
+            day = "Hoy",
+            value = "8,193 Pasos",
+            //unit = "Pasos",
+            cardColor = CardColor,
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp)
+
+        )
+        MiniStatCard(
+            title = "Distancia",
+            day = "Hoy",
+            value = "5.03 KM",
+            //unit = "KM",
+            cardColor = CardColor,
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp)
+
+        )
+    }
 }
+
+
+
+

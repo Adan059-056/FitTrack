@@ -13,12 +13,7 @@ import com.github.mikephil.charting.utils.ColorTemplate
 
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.formatter.PercentFormatter;
-import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.interfaces.datasets.IDataSet;
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.MPPointF;
+
 
 @Composable
 fun MyComposePieChart(
@@ -27,6 +22,7 @@ fun MyComposePieChart(
 ) {
     AndroidView(
         modifier = modifier,
+
         factory = { context ->
             PieChart(context).apply {
                 description.isEnabled = false
