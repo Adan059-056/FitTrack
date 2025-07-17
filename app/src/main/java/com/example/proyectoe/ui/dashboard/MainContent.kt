@@ -79,7 +79,7 @@ fun MainContent(
             UserResume()
             //MiniStatCard()
             //Text("Resumen")
-            MonitoringSection()
+            //MonitoringSection()
             Spacer(Modifier.height(16.dp))
             BannerCard()
             Spacer(Modifier.height(16.dp))
