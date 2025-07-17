@@ -169,7 +169,9 @@ fun RegisterScreen(
         }
 
         item {
-            SectionCard(title = "Información personal", cardColor = CardColor) {
+            SectionCard(
+                title = "Información personal", cardColor = CardColor
+            ){
                 SimpleTextField(
                     value = userName,
                     onValueChange = { userName = it },

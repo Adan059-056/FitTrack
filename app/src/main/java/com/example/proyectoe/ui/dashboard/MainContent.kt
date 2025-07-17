@@ -28,7 +28,8 @@ import androidx.compose.runtime.LaunchedEffect
 import com.example.proyectoe.ui.Profile.ProfileViewModel
 import com.example.proyectoe.ui.dashboard.components.UserResume
 import androidx.compose.foundation.layout.fillMaxSize // Important for the LazyColumn
-
+import com.example.proyectoe.ui.dashboard.components.UserResume // Import UserResume
+import androidx.compose.ui.Alignment
 
 
 @Composable
@@ -62,7 +63,8 @@ fun MainContent(
         profileViewModel.loadUserProfile()
     }
     LazyColumn (
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ){
         item {
     Spacer(Modifier.height(16.dp))
