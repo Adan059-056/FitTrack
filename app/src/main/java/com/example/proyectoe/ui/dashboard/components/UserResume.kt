@@ -25,7 +25,7 @@ import androidx.compose.ui.text.style.LineHeightStyle
 private val BorderColor = Color(0xFF3A506B)
 
 @Composable
-fun UserResume() {
+fun UserResume(currentSteps: Int, distanceKm: Float) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -108,7 +108,7 @@ fun UserResume() {
         MiniStatCard(
             title = "Conteo",
             day = "Hoy",
-            value = "8,193 Pasos",
+            value = "$currentSteps Pasos",
             //unit = "Pasos",
             cardColor = CardColor,
             modifier = Modifier
@@ -119,7 +119,7 @@ fun UserResume() {
         MiniStatCard(
             title = "Distancia",
             day = "Hoy",
-            value = "5.03 KM",
+            value = "$distanceKm KM",
             //unit = "KM",
             cardColor = CardColor,
             modifier = Modifier

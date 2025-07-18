@@ -21,11 +21,28 @@ import com.example.proyectoe.ui.dashboard.components.MainBottonBar
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+
 class MainActivity : ComponentActivity() {
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            println("Permiso ACTIVITY_RECOGNITION concedido!")
+        } else {
+            println("Permiso ACTIVITY_RECOGNITION denegado. El contador de pasos no funcionará.")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         FirebaseApp.initializeApp(this)
+        checkAndRequestActivityRecognitionPermission()
 
         setContent {
             val navController = rememberNavController()
@@ -109,13 +126,11 @@ class MainActivity : ComponentActivity() {
                             FavoritesScreen()
                         }
                         composable("food") {
-                            // *** CAMBIO AQUÍ ***
                             FoodScreen(
                                 onBack = { navController.popBackStack() }, // Si quieres un botón de retroceso
                                 onAddFood = { navController.navigate("add_food_route") } // Navega a la nueva ruta
                             )
                         }
-                        // *** NUEVA RUTA AQUÍ ***
                         composable("add_food_route") {
                             AddFoodScreen(
                                 onBack = { navController.popBackStack() } // Permite volver de AddFoodScreen
@@ -135,6 +150,24 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun checkAndRequestActivityRecognitionPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this, // 'this' se refiere a la instancia de MainActivity
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                println("Permiso ACTIVITY_RECOGNITION ya concedido.")
+            }
+            shouldShowRequestPermissionRationale(Manifest.permission.ACTIVITY_RECOGNITION) -> {
+                println("Necesitamos el permiso de reconocimiento de actividad para contar tus pasos. Por favor, concédelo.")
+                requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+            }
+            else -> {
+                requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
             }
         }
     }

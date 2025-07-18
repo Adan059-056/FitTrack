@@ -53,15 +53,24 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
 
     //foto
-    implementation("io.coil-kt:coil-compose:2.6.0") // O la última versión estable
+    implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.activity:activity-compose:1.9.0")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0") // O la última versión estable (2.7.0, 2.8.0-rc02, etc.)
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.0") // O la última versión estable
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
+    //implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
+    //implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.0")
+    //implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
 
-    // Para ViewModel con Compose (ESTA TAMBIÉN ES CLAVE)
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0") // O la última versión estable (2.7.0, 2.8.0-rc02, etc.)
+    // Para ViewModel con Compose
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose")
+
+    // Para LiveData con Compose (incluye observeAsState)
+    implementation ("androidx.compose.runtime:runtime-livedata")
+
+    // Para LiveData y Transformations (parte de los KTX)
+    implementation ("androidx.lifecycle:lifecycle-livedata-ktx")
+
+    // Para ViewModel KTX (si necesitas ViewModelProvider.Factory simplificado, etc.)
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx")
 
 
     implementation(libs.androidx.core.ktx)

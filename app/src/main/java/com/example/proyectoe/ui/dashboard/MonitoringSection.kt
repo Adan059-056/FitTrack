@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectoe.R
 import com.example.proyectoe.ui.components.MyComposePieChart
+import androidx.compose.foundation.background
+import com.example.proyectoe.ui.theme.CardColor
 
 @Composable
 fun MonitoringSection()
@@ -38,13 +40,15 @@ fun MonitoringSection()
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 44.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
         ){
             // Se muestran datos del día
             MonitorItem(R.drawable.monitor1, "2500", "Calorias Diarias")
             MonitorItem(R.drawable.monitor2, "6h 45min", "Horas Dormidas")
             MonitorItem(R.drawable.monitor3, "2w 4days", "Haciendo Ejercicio")
+
+
         }
 
 
