@@ -1,22 +1,11 @@
-// FoodScreen.kt
 package com.example.proyectoe.ui.Food
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -27,28 +16,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,34 +27,36 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.proyectoe.R
 import kotlinx.coroutines.launch
+
+// Definición de colores para el tema oscuro
+val darkBlueBlack = Color(0xFF0A0E21)
+val orangePrimary = Color(0xFFFF9800)
+val orangeSecondary = Color(0xFFFF5722)
+val darkSurface = Color(0xFF121212)
+val textColor = Color(0xFFE0E0E0)
+val cardColor = Color(0xFF1E1E2D)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodScreen(onBack: () -> Unit = {}, onAddFood: () -> Unit = {}) {
-    val darkBlue = Color(0xFF0A1128)
-    val deepBlue = Color(0xFF0F1C3F)
-    val navyBlue = Color(0xFF1A2C5C)
-    val BlueAccent = Color(0x00FFFF)
-
-    var searchQuery by remember { mutableStateOf("") }
-    var activeSearch by remember { mutableStateOf(false) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var activeSearch by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Alimentación") },
+                title = { Text("Alimentación", color = textColor) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = Color.White
+                    containerColor = darkBlueBlack,
+                    titleContentColor = textColor
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.Default.ArrowBack,
                             contentDescription = "Atrás",
-                            tint = Color.White
+                            tint = textColor
                         )
                     }
                 },
@@ -93,7 +65,7 @@ fun FoodScreen(onBack: () -> Unit = {}, onAddFood: () -> Unit = {}) {
                         Icon(
                             Icons.Default.Search,
                             contentDescription = "Buscar",
-                            tint = Color.White
+                            tint = textColor
                         )
                     }
                 }
@@ -101,26 +73,18 @@ fun FoodScreen(onBack: () -> Unit = {}, onAddFood: () -> Unit = {}) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { onAddFood() }, //
-                containerColor = BlueAccent,
+                onClick = { onAddFood() },
+                containerColor = orangePrimary,
                 contentColor = Color.White
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Agregar alimento")
             }
-        }
-    ){ innerPadding ->
+        },
+        containerColor = darkBlueBlack
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            deepBlue,
-                            darkBlue,
-                            Color.Black
-                        )
-                    )
-                )
                 .padding(innerPadding)
         ) {
             LazyColumn(
@@ -137,12 +101,12 @@ fun FoodScreen(onBack: () -> Unit = {}, onAddFood: () -> Unit = {}) {
                             onSearch = { activeSearch = false },
                             active = activeSearch,
                             onActiveChange = { activeSearch = it },
-                            placeholder = { Text("Buscar alimentos...") },
+                            placeholder = { Text("Buscar alimentos...", color = textColor.copy(alpha = 0.7f)) },
                             leadingIcon = {
                                 Icon(
                                     Icons.Default.Search,
                                     contentDescription = "Buscar",
-                                    tint = Color.White
+                                    tint = textColor
                                 )
                             },
                             trailingIcon = {
@@ -153,18 +117,36 @@ fun FoodScreen(onBack: () -> Unit = {}, onAddFood: () -> Unit = {}) {
                                     Icon(
                                         Icons.Default.Close,
                                         contentDescription = "Cerrar",
-                                        tint = Color.White
+                                        tint = textColor
                                     )
                                 }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp),
-                            colors = androidx.compose.material3.SearchBarDefaults.colors(
-                                containerColor = navyBlue.copy(alpha = 0.7f)
+                            colors = SearchBarDefaults.colors(
+                                containerColor = cardColor,
+                                inputFieldColors = TextFieldDefaults.colors(
+                                    focusedTextColor = textColor,
+                                    unfocusedTextColor = textColor,
+                                    disabledTextColor = textColor.copy(alpha = 0.5f),
+                                    errorTextColor = Color.Red,
+                                    focusedContainerColor = cardColor,
+                                    unfocusedContainerColor = cardColor,
+                                    disabledContainerColor = cardColor,
+                                    cursorColor = orangePrimary,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    focusedLeadingIconColor = textColor,
+                                    unfocusedLeadingIconColor = textColor,
+                                    focusedTrailingIconColor = textColor,
+                                    unfocusedTrailingIconColor = textColor,
+                                    focusedPlaceholderColor = textColor.copy(alpha = 0.7f),
+                                    unfocusedPlaceholderColor = textColor.copy(alpha = 0.7f),
+                                )
                             )
                         ) {
-                            // Resultados de búsqueda (puedes implementarlo luego)
+                            // Resultados de búsqueda
                         }
                     }
                 }
@@ -203,26 +185,23 @@ fun FoodScreen(onBack: () -> Unit = {}, onAddFood: () -> Unit = {}) {
 }
 
 @Composable
-
 fun CalorieSummaryCard() {
-    val navyBlue = Color(0xFF1A2C5C)
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = navyBlue.copy(alpha = 0.8f)
+            containerColor = cardColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
-        val LigthBlue = Color(0xADD8E6)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            NutrientCircle(title = "Consumidas", value = "0", total = "1,686", color = LigthBlue)
+            NutrientCircle(title = "Consumidas", value = "0", total = "1,686", color = orangePrimary)
             NutrientCircle(title = "Restantes", value = "1,686", total = "", color = Color(0xFF4CAF50))
-            NutrientCircle(title = "Quemadas", value = "0", total = "", color = Color(0xFFFF9800))
+            NutrientCircle(title = "Quemadas", value = "0", total = "", color = orangeSecondary)
         }
     }
 }
@@ -245,13 +224,13 @@ fun NutrientCircle(title: String, value: String, total: String, color: Color) {
                     text = value,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = textColor
                 )
                 if (total.isNotEmpty()) {
                     Text(
                         text = "/ $total",
                         fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.7f)
+                        color = textColor.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -259,7 +238,7 @@ fun NutrientCircle(title: String, value: String, total: String, color: Color) {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = title,
-            color = Color.White.copy(alpha = 0.8f),
+            color = textColor.copy(alpha = 0.8f),
             fontSize = 14.sp
         )
     }
@@ -272,12 +251,11 @@ fun MacronutrientsCard() {
         Nutrient("Proteínas", "0 g", "82 g", 0.1f),
         Nutrient("Grasas", "0 g", "54 g", 0.05f)
     )
-    val navyBlue = Color(0xFF1A2C5C)
-    val MidnightBlue = Color(0x191970)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = navyBlue.copy(alpha = 0.8f)
+            containerColor = cardColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
@@ -286,7 +264,7 @@ fun MacronutrientsCard() {
                 text = "Macronutrientes",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = textColor,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
@@ -295,7 +273,7 @@ fun MacronutrientsCard() {
                 if (nutrient != nutrients.last()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Divider(
-                        color = MidnightBlue.copy(alpha = 0.3f),
+                        color = textColor.copy(alpha = 0.1f),
                         thickness = 1.dp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -315,32 +293,30 @@ fun MacronutrientRow(nutrient: Nutrient) {
             Text(
                 text = nutrient.name,
                 fontWeight = FontWeight.Medium,
-                color = Color.White
+                color = textColor
             )
             Text(
                 text = "${nutrient.consumed} / ${nutrient.total}",
-                color = Color.White.copy(alpha = 0.8f)
+                color = textColor.copy(alpha = 0.8f)
             )
         }
 
         Spacer(modifier = Modifier.height(4.dp))
 
         // Barra de progreso
-        val MidnightBlue = Color(0x191970)
-        val LigthBlue = Color(0xADD8E6)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .background(MidnightBlue.copy(alpha = 0.3f))
+                .background(textColor.copy(alpha = 0.1f))
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(nutrient.progress)
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(LigthBlue)
+                    .background(orangePrimary)
             )
         }
     }
@@ -356,11 +332,11 @@ fun MealBreakdownSection() {
         Meal("Cena", "0 / 421 kcal"),
         Meal("Snacks", "0 / 84 kcal")
     )
-    val darkBlue = Color(0xFF0A1128)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = darkBlue.copy(alpha = 0.8f)
+            containerColor = cardColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
@@ -369,7 +345,7 @@ fun MealBreakdownSection() {
                 text = "Comidas del día",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = textColor,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
@@ -385,13 +361,12 @@ fun MealBreakdownSection() {
 
 @Composable
 fun MealRow(meal: Meal) {
-    val darkBlue = Color(0xFF0A1128)
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(darkBlue.copy(alpha = 0.5f))
+            .background(cardColor.copy(alpha = 0.8f))
+            .border(1.dp, textColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -400,13 +375,12 @@ fun MealRow(meal: Meal) {
             text = meal.name,
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
-            color = Color.White
+            color = textColor
         )
-        val LigthBlue = Color(0xADD8E6)
         Text(
             text = meal.calories,
             fontSize = 16.sp,
-            color = LigthBlue
+            color = orangePrimary
         )
     }
 }
@@ -427,7 +401,6 @@ fun CategorySelector() {
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             categories.forEachIndexed { index, category ->
-                val LigthBlue = Color(0xADD8E6)
                 Button(
                     onClick = {
                         selectedCategory = index
@@ -438,15 +411,18 @@ fun CategorySelector() {
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedCategory == index) LigthBlue else Color.Transparent,
-                        contentColor = if (selectedCategory == index) Color.White else Color.White.copy(alpha = 0.7f)
+                        containerColor = if (selectedCategory == index) orangePrimary else Color.Transparent,
+                        contentColor = if (selectedCategory == index) Color.White else textColor.copy(alpha = 0.7f)
                     ),
                     contentPadding = PaddingValues(vertical = 8.dp),
                     elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = if (selectedCategory == index) 4.dp else 0.dp
-                    )
+                        defaultElevation = if (selectedCategory == index) 4.dp else 0.dp,
+                        pressedElevation = 0.dp,
+                        hoveredElevation = 0.dp
+                    ),
+                    border = if (selectedCategory != index) BorderStroke(1.dp, textColor.copy(alpha = 0.3f)) else null
                 ) {
-                    Text(category)
+                    Text(category, fontSize = 12.sp)
                 }
 
                 if (index < categories.lastIndex) {
@@ -458,7 +434,6 @@ fun CategorySelector() {
         Spacer(modifier = Modifier.height(16.dp))
 
         HorizontalPager(state = pagerState) { page ->
-
             FoodItemsList()
         }
     }
@@ -479,9 +454,8 @@ fun FoodItemsList() {
     Column {
         foodItems.forEach { food ->
             FoodItemRow(food = food)
-            val LigthBlue = Color(0xADD8E6)
             Divider(
-                color = LigthBlue.copy(alpha = 0.2f),
+                color = textColor.copy(alpha = 0.1f),
                 thickness = 1.dp,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
@@ -498,18 +472,16 @@ fun FoodItemRow(food: FoodItem) {
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val LigthBlue = Color(0xADD8E6)
         Box(
             modifier = Modifier
                 .size(50.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(LigthBlue.copy(alpha = 0.2f)),
+                .background(orangePrimary.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
         ) {
-            // Aquí iría una imagen representativa del alimento
             Text(
                 text = food.name.take(1),
-                color = LigthBlue,
+                color = orangePrimary,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -520,11 +492,11 @@ fun FoodItemRow(food: FoodItem) {
             Text(
                 text = food.name,
                 fontWeight = FontWeight.Medium,
-                color = Color.White
+                color = textColor
             )
             Text(
                 text = food.details,
-                color = Color.White.copy(alpha = 0.7f),
+                color = textColor.copy(alpha = 0.7f),
                 fontSize = 14.sp
             )
         }
@@ -532,7 +504,7 @@ fun FoodItemRow(food: FoodItem) {
         Text(
             text = food.calories,
             fontWeight = FontWeight.Bold,
-            color = LigthBlue
+            color = orangePrimary
         )
     }
 }
