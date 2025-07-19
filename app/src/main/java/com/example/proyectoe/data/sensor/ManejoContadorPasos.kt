@@ -14,26 +14,26 @@ import java.util.Locale
 class ManejoContadorPasos(context: Context) : SensorEventListener {
 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    private val stepCounterSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+    private val stepCounterSensor: Sensor? =
+        sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
-    // Callback para cuando el valor del contador de pasos cambia
     private var onStepCountChanged: ((stepCount: Float) -> Unit)? = null
 
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("step_counter_prefs", Context.MODE_PRIVATE)
 
-    private var initialSensorReadingAtStartOfDay = 0f
-    private var stepsAccumulatedToday = 0f
-    private var initialStepCount = 0f
-    private var isInitialCountSet = false
-    private var lastSensorTotalSteps = 0f
-
-    private val KEY_INITIAL_SENSOR_READING_AT_START_OF_DAY = "initial_sensor_reading_at_start_of_day"
-    private val KEY_STEPS_ACCUMULATED_TODAY = "steps_accumulated_today"
+    private val KEY_DAILY_STEPS_OFFSET = "daily_steps_offset"
     private val KEY_LAST_COUNT_DATE = "last_count_date"
+    private val KEY_STEPS_ACCUMULATED_TODAY = "steps_accumulated_today"
 
+
+    // Variables en memoria
+    private var dailyStepsOffset = 0f
+    private var lastRecordedDate = ""
+    private var stepsAccumulatedTodayInMemory = 0f
     init {
-        loadStepCountState()
+
+        loadState()
     }
 
     fun startListening(onChange: (stepCount: Float) -> Unit) {
@@ -41,12 +41,14 @@ class ManejoContadorPasos(context: Context) : SensorEventListener {
         stepCounterSensor?.let {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
         }
-        onStepCountChanged?.invoke(stepsAccumulatedToday)
+        onStepCountChanged?.invoke(stepsAccumulatedTodayInMemory)
+        //println("ManejoContadorPasos: Inicia escucha. Pasos actuales cargados: $stepsAccumulatedTodayInMemory")
     }
 
     fun stopListening() {
         sensorManager.unregisterListener(this)
-        saveStepCountState()
+        saveState()
+        //println("ManejoContadorPasos: Detiene escucha. Estado guardado.")
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -58,68 +60,70 @@ class ManejoContadorPasos(context: Context) : SensorEventListener {
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val today = dateFormat.format(calendar.time)
 
-                val lastCountDate = sharedPreferences.getString(KEY_LAST_COUNT_DATE, "")
-
-                if (lastCountDate != today) {
-                    // cuando cambia el dia
-                    initialSensorReadingAtStartOfDay = currentSensorTotalSteps
-                    stepsAccumulatedToday = 0f
-                    sharedPreferences.edit().putString(KEY_LAST_COUNT_DATE, today).apply()
-                    println("ManejoContadorPasos: Nuevo día detectado. Conteo reiniciado a 0.")
-                } else if (initialSensorReadingAtStartOfDay == 0f) {
-                    // Si el initialSensorReadingAtStartOfDay es 0, significa que la app acaba de arrancar por primera vez en el día
-                    // o que el dispositivo se reinició
-                    initialSensorReadingAtStartOfDay = currentSensorTotalSteps - stepsAccumulatedToday
-                    println("ManejoContadorPasos: Initial reading set on resume: $initialSensorReadingAtStartOfDay")
+                //Maneja el cambio de día
+                if (lastRecordedDate != today) {
+                    dailyStepsOffset = currentSensorTotalSteps // El offset es el total del sensor en este momento
+                    stepsAccumulatedTodayInMemory = 0f // Reinicia el conteo
+                    lastRecordedDate = today
+                    saveState() // Guardar el nuevo offset y la nueva fecha
+                    println("ManejoContadorPasos: Nuevo día detectado o primera lectura del día. Conteo reiniciado. Offset: $dailyStepsOffset")
                 }
 
-                // Calcular los pasos para mostrar en la UI
-                val currentDaySteps = currentSensorTotalSteps - initialSensorReadingAtStartOfDay
+                var currentDailySteps = currentSensorTotalSteps - dailyStepsOffset
 
-                stepsAccumulatedToday = if (currentDaySteps < 0) 0f else currentDaySteps
-                onStepCountChanged?.invoke(stepsAccumulatedToday)
-                println("ManejoContadorPasos: Current sensor: $currentSensorTotalSteps, Initial reading: $initialSensorReadingAtStartOfDay, Steps Today: $stepsAccumulatedToday")
+                if (currentDailySteps < 0) {
+                    println("ManejoContadorPasos: Sensor probablemente reiniciado. Ajustando offset.")
+                    dailyStepsOffset = currentSensorTotalSteps // El nuevo offset es el valor actual del sensor
+                    currentDailySteps = 0f
+                    saveState()
+                }
+
+                stepsAccumulatedTodayInMemory = currentDailySteps
+                onStepCountChanged?.invoke(stepsAccumulatedTodayInMemory)
+                saveState() //guadra los datos para que persistan los pasos
+                println("ManejoContadorPasos: Sensor total: $currentSensorTotalSteps, Offset: $dailyStepsOffset, Pasos Hoy: $stepsAccumulatedTodayInMemory")
             }
         }
     }
+
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
 
-    // verifica si el dispositivo tiene el sensor de pasos
     fun hasStepCounterSensor(): Boolean {
         return stepCounterSensor != null
     }
 
     fun getStepsAccumulatedToday(): Float {
-        return stepsAccumulatedToday
+        return stepsAccumulatedTodayInMemory
     }
 
-    private fun saveStepCountState() {
+    private fun saveState() {
         sharedPreferences.edit().apply {
-            putFloat(KEY_INITIAL_SENSOR_READING_AT_START_OF_DAY, initialSensorReadingAtStartOfDay)
-            putFloat(KEY_STEPS_ACCUMULATED_TODAY, stepsAccumulatedToday)
+            putFloat(KEY_DAILY_STEPS_OFFSET, dailyStepsOffset)
+            putString(KEY_LAST_COUNT_DATE, lastRecordedDate)
+            putFloat(KEY_STEPS_ACCUMULATED_TODAY, stepsAccumulatedTodayInMemory)
             apply()
         }
-        println("ManejoContadorPasos: Estado de pasos guardado. InitialSensorReading: $initialSensorReadingAtStartOfDay, StepsAccumulatedToday: $stepsAccumulatedToday")
+        println("ManejoContadorPasos: Estado guardado. Offset: $dailyStepsOffset, Fecha: $lastRecordedDate, Pasos Hoy: $stepsAccumulatedTodayInMemory")
     }
 
-    private fun loadStepCountState() {
-        // Cargar los valores guardados
-        initialSensorReadingAtStartOfDay = sharedPreferences.getFloat(KEY_INITIAL_SENSOR_READING_AT_START_OF_DAY, 0f)
-        stepsAccumulatedToday = sharedPreferences.getFloat(KEY_STEPS_ACCUMULATED_TODAY, 0f)
-        println("ManejoContadorPasos: Estado de pasos cargado. InitialSensorReading: $initialSensorReadingAtStartOfDay, StepsAccumulatedToday: $stepsAccumulatedToday")
+    private fun loadState() {
+        dailyStepsOffset = sharedPreferences.getFloat(KEY_DAILY_STEPS_OFFSET, 0f)
+        lastRecordedDate = sharedPreferences.getString(KEY_LAST_COUNT_DATE, "") ?: ""
+        stepsAccumulatedTodayInMemory = sharedPreferences.getFloat(KEY_STEPS_ACCUMULATED_TODAY, 0f)
+        println("ManejoContadorPasos: Estado cargado. Offset: $dailyStepsOffset, Fecha: $lastRecordedDate, Pasos Hoy: $stepsAccumulatedTodayInMemory")
     }
 
     fun resetDailySteps() {
         sharedPreferences.edit().apply {
-            putFloat(KEY_INITIAL_SENSOR_READING_AT_START_OF_DAY, 0f) // Reiniciar el conteo inicial
-            putFloat(KEY_STEPS_ACCUMULATED_TODAY, 0f) // Reiniciar el último total del sensor
-            putString(KEY_LAST_COUNT_DATE, "") // Reiniciar la fecha para que se detecte como nuevo día
+            putString(KEY_LAST_COUNT_DATE, "")
+            putFloat(KEY_STEPS_ACCUMULATED_TODAY, 0f) // Resetea los pasos acumulados
             apply()
         }
-        initialStepCount = 0f
-        lastSensorTotalSteps = 0f
-        isInitialCountSet = false
+        // Actualizar variables en memoria para reflejar el reinicio inmediatamente
+        dailyStepsOffset = 0f
+        lastRecordedDate = ""
+        stepsAccumulatedTodayInMemory = 0f
         onStepCountChanged?.invoke(0f)
-        println("ManejoContadorPasos: Conteo diario reiniciado.")
+        println("ManejoContadorPasos: Conteo diario reiniciado manualmente.")
     }
 }
