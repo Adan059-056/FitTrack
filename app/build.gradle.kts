@@ -86,6 +86,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.database.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -105,4 +106,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.compose.ui:ui-test-manifest")
+    implementation ("com.google.firebase:firebase-auth-ktx:23.0.0")
+    implementation ("com.google.firebase:firebase-core:21.1.1")
 }
