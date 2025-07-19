@@ -8,7 +8,7 @@ import com.example.proyectoe.data.sensor.ManejoContadorPasos
 import androidx.lifecycle.map
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
-
+    //PARA EL CONTADOR DE PASOS
     private val _currentSteps = MutableLiveData(0f)
     val currentSteps: LiveData<Float> = _currentSteps
 
@@ -19,6 +19,18 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         val distanceMeters = steps * strideLengthMeters
         val distanceKm = distanceMeters / 1000f
         String.format("%.2f", distanceKm).toFloat()
+    }
+    //PARA LA GRAFICA
+    val dailyStepGoal = 10000f
+
+    val stepProgressPercentage: LiveData<Float> = currentSteps.map { steps ->
+        if (dailyStepGoal > 0) (steps / dailyStepGoal) * 100f else 0f
+    }
+
+    //LiveData para los pasos restantes
+    val stepsRemaining: LiveData<Float> = currentSteps.map { steps ->
+        val remaining = dailyStepGoal - steps
+        if (remaining < 0) 0f else remaining
     }
 
     init {

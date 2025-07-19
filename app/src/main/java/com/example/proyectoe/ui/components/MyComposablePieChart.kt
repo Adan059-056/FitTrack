@@ -11,14 +11,17 @@ import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.utils.ColorTemplate
 
-import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.animation.Easing
+import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.components.LegendEntry
 
 
 @Composable
 fun MyComposePieChart(
     modifier: Modifier = Modifier,
-    data: Map<String, Float>
+    data: Map<String, Float>,
+    segmentColors: List<Int>,
+    customLegendEntries: List<LegendEntry>
 ) {
     AndroidView(
         modifier = modifier,
@@ -37,21 +40,25 @@ fun MyComposePieChart(
                 setHoleColor(Color.TRANSPARENT)
                 setCenterTextSize(10f)
 
+                //para ajustar los textos debajo de la grafica
                 val legend = legend
-                legend.isEnabled = true // Asegúrate de que la leyenda esté habilitada
-                legend.verticalAlignment = Legend.LegendVerticalAlignment.CENTER // Alineación vertical
-                legend.horizontalAlignment = Legend.LegendHorizontalAlignment.RIGHT // Alineación horizontal a la derecha
-                legend.orientation = Legend.LegendOrientation.VERTICAL // Orientación vertical de los ítems
-                legend.setDrawInside(false) // Dibuja la leyenda fuera del gráfico
-                legend.xEntrySpace = 7f // Espacio entre ítems horizontalmente
-                legend.yEntrySpace = 0f // Espacio entre ítems verticalmente
-                legend.yOffset = 0f // Desplazamiento en el eje Y
-
-                // Ajustar el tamaño del texto de la leyenda
-                legend.textSize = 20f // Cambia el tamaño del texto, por ejemplo a 12f
-
-                // Ajustar el color del texto de la leyenda
+                legend.isEnabled = true
+                legend.verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
+                legend.horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
+                legend.orientation = Legend.LegendOrientation.HORIZONTAL
+                legend.setDrawInside(false)
+                legend.xEntrySpace = 20f
+                legend.yEntrySpace = 0f
+                legend.yOffset = 5f
+                legend.textSize = 10f
                 legend.textColor = Color.WHITE
+
+                //permite textos o leyendas personalizadas
+                legend.setCustom(customLegendEntries)
+
+                rotationAngle = 0f
+                isRotationEnabled = false
+                setHighlightPerTapEnabled(false)
 
             }
         },
@@ -62,19 +69,25 @@ fun MyComposePieChart(
             }
 
             val dataSet = PieDataSet(entries, "Objetivo").apply {
-                colors = ColorTemplate.COLORFUL_COLORS.toList()
+                colors = segmentColors
                 sliceSpace = 2f
-                selectionShift = 5f
+                selectionShift = 0f
             }
-
-            val pieData = PieData(dataSet)
-            pieData.setValueTextSize(11f)
-            pieData.setValueTextColors(ColorTemplate.COLORFUL_COLORS.toList())
+            //para ajustar los valores de la grafica
+            val pieData = PieData(dataSet).apply {//muestra los porcentajes de la grafica
+                setValueFormatter(com.github.mikephil.charting.formatter.PercentFormatter(pieChart))
+                //para valores enteros:: setValueFormatter(com.github.mikephil.charting.formatter.ValueFormatter())
+            }
+            pieData.setValueTextSize(12f)
+            pieData.setValueTextColor(Color.WHITE)
 
             pieChart.data = pieData
-            pieChart.animateY(1400, Easing.EaseInOutQuad)
+            pieChart.setDrawEntryLabels(false) // No mostrar etiquetas dentro de la gráfica
+            pieChart.description.isEnabled = false
+            pieChart.legend.isEnabled = true
 
-            pieChart.invalidate()
+            //pieChart.animateY(500, Easing.EaseInOutQuad) // Animación
+            pieChart.invalidate() // Redibujar el gráfico
         }
     )
 }

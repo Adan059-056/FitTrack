@@ -21,6 +21,8 @@ import com.example.proyectoe.ui.theme.CardColor
 import com.example.proyectoe.ui.components.MyComposePieChart
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.text.style.LineHeightStyle
+import android.graphics.*
+import com.github.mikephil.charting.components.Legend
 
 private val BorderColor = Color(0xFF3A506B)
 
@@ -77,20 +79,73 @@ fun UserResume(currentSteps: Int, distanceKm: Float) {
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 16.dp)
             )
-// Datos de ejemplo para la gráfica.
-// **IMPORTANTE:** En una aplicación real, estos datos deberían ser dinámicos,
-// obtenidos de un ViewModel o calculados.
-            val weeklyData = mapOf(
-                "100 de" to 10f,
-                "200 KCAL" to 10f
+
+            //valores de la grafica
+            val dailyStepGoal = 10000f // meta de pasos
+            val currentStepsFloat = currentSteps.toFloat()
+            val completedSteps = if (currentStepsFloat > dailyStepGoal) dailyStepGoal else currentStepsFloat
+            val remainingSteps = dailyStepGoal - completedSteps
+
+            // colores de la grafica
+            val pieChartSegmentColors = ArrayList<Int>()
+            val completedColorInt = android.graphics.Color.parseColor("#FF4444") // rojo
+            val remainingColorInt = android.graphics.Color.parseColor("#FFAA00") // naranja
+            val finalColorInt = android.graphics.Color.parseColor("#31A84F") // verde
+
+            val pieChartData = mutableMapOf<String, Float>()
+
+
+            // como se comportan los colores
+            if (completedSteps >= dailyStepGoal) {
+                pieChartSegmentColors.add(finalColorInt)
+                pieChartData["Completados"] = dailyStepGoal
+            } else if (currentStepsFloat == 0f && dailyStepGoal > 0f) {
+                pieChartSegmentColors.add(remainingColorInt)
+                pieChartData["Restantes"] = dailyStepGoal
+            } else {
+                pieChartSegmentColors.add(completedColorInt)
+                pieChartSegmentColors.add(remainingColorInt)
+
+                pieChartData["Completados"] = completedSteps
+                pieChartData["Restantes"] = remainingSteps
+            }
+
+
+            val legendEntries = ArrayList<com.github.mikephil.charting.components.LegendEntry>()
+
+            //agrega los textos debajo de la grafica
+            legendEntries.add(
+                com.github.mikephil.charting.components.LegendEntry(
+                    "Objetivo ${dailyStepGoal.toInt()} pasos",
+                    Legend.LegendForm.CIRCLE,
+                    10f,//tamaño
+                    0f,
+                    null,
+                    remainingColorInt //color
+                )
             )
+
+            legendEntries.add(
+                com.github.mikephil.charting.components.LegendEntry(
+                    "Pasos actuales ${currentSteps}",
+                    Legend.LegendForm.CIRCLE,
+                    10f,
+                    0f,
+                    null,
+                    completedColorInt
+                )
+            )
+
+
             MyComposePieChart(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(280.dp) // Dale una altura específica para que se muestre correctamente
+                    .height(220.dp) // tamaño de la grafica
                     .padding(horizontal = 16.dp), // Padding horizontal para la gráfica
-                data = weeklyData,
-//Text = "Actividad Semanal" // Texto central de la gráfica
+                    data = pieChartData,
+                    segmentColors = pieChartSegmentColors,
+                    customLegendEntries = legendEntries
+                //Text = "Actividad Semanal" // Texto central de la gráfica
             )
         }
     }
