@@ -60,15 +60,6 @@ fun FoodScreen(onBack: () -> Unit = {}, onAddFood: () -> Unit = {}) {
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = { activeSearch = true }) {
-                        Icon(
-                            Icons.Default.Search,
-                            contentDescription = "Buscar",
-                            tint = textColor
-                        )
-                    }
-                }
             )
         },
         floatingActionButton = {
@@ -92,65 +83,7 @@ fun FoodScreen(onBack: () -> Unit = {}, onAddFood: () -> Unit = {}) {
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Barra de búsqueda
-                item {
-                    if (activeSearch) {
-                        SearchBar(
-                            query = searchQuery,
-                            onQueryChange = { searchQuery = it },
-                            onSearch = { activeSearch = false },
-                            active = activeSearch,
-                            onActiveChange = { activeSearch = it },
-                            placeholder = { Text("Buscar alimentos...", color = textColor.copy(alpha = 0.7f)) },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Search,
-                                    contentDescription = "Buscar",
-                                    tint = textColor
-                                )
-                            },
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    searchQuery = ""
-                                    activeSearch = false
-                                }) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "Cerrar",
-                                        tint = textColor
-                                    )
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp),
-                            colors = SearchBarDefaults.colors(
-                                containerColor = cardColor,
-                                inputFieldColors = TextFieldDefaults.colors(
-                                    focusedTextColor = textColor,
-                                    unfocusedTextColor = textColor,
-                                    disabledTextColor = textColor.copy(alpha = 0.5f),
-                                    errorTextColor = Color.Red,
-                                    focusedContainerColor = cardColor,
-                                    unfocusedContainerColor = cardColor,
-                                    disabledContainerColor = cardColor,
-                                    cursorColor = orangePrimary,
-                                    focusedIndicatorColor = Color.Transparent,
-                                    unfocusedIndicatorColor = Color.Transparent,
-                                    focusedLeadingIconColor = textColor,
-                                    unfocusedLeadingIconColor = textColor,
-                                    focusedTrailingIconColor = textColor,
-                                    unfocusedTrailingIconColor = textColor,
-                                    focusedPlaceholderColor = textColor.copy(alpha = 0.7f),
-                                    unfocusedPlaceholderColor = textColor.copy(alpha = 0.7f),
-                                )
-                            )
-                        ) {
-                            // Resultados de búsqueda
-                        }
-                    }
-                }
-
+                
                 // Resumen de calorías
                 item {
                     CalorieSummaryCard()

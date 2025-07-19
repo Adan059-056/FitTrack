@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-07-08T03:18:13.545515653Z">
+        <DropdownSelection timestamp="2025-07-19T20:21:24.865919400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/home/finnot/.android/avd/Pixel_2.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=c2fa41cf" />
             </handle>
           </Target>
         </DropdownSelection>
