@@ -37,10 +37,15 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
     var calories by remember { mutableStateOf("") }
     var mensaje by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    var protein by remember { mutableStateOf("") } // Nuevo campo
+    var fat by remember { mutableStateOf("") }
 
     // Validación
     val isFormValid by derivedStateOf {
-        name.isNotBlank() && calories.isNotBlank() && calories.toIntOrNull() != null
+        name.isNotBlank() &&
+                calories.isNotBlank() && calories.toIntOrNull() != null &&
+                protein.isNotBlank() && protein.toIntOrNull() != null &&
+                fat.isNotBlank() && fat.toIntOrNull() != null
     }
 
     // Definición de colores según tu tema
@@ -220,6 +225,46 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
                     }
                 )
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = protein,
+                    onValueChange = { if (it.all { char -> char.isDigit() }) protein = it },
+                    label = { Text("Proteínas (g)", color = textColor.copy(alpha = 0.7f)) },
+                    leadingIcon =
+                        {
+                        Text(
+                            "🥩",
+                            modifier = Modifier.size(24.dp),
+                            color = orangePrimary
+                        )
+                        },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = darkSurface,
+                        unfocusedContainerColor = darkSurface,
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedLabelColor = orangePrimary,
+                        unfocusedLabelColor = textColor.copy(alpha = 0.6f),
+                        cursorColor = orangePrimary,
+                        focusedIndicatorColor = orangePrimary,
+                        unfocusedIndicatorColor = Color(0xFF2A2A3C)
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = calories.isBlank() && mensaje.isNotEmpty(),
+                    suffix = {
+                        Text(
+                            "g",
+                            color = textColor.copy(alpha = 0.7f)
+                        )
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 // Mensaje de validación
                 if (mensaje.isNotEmpty()) {
                     Row(
@@ -243,6 +288,44 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
                     }
                 }
 
+                Spacer(modifier = Modifier.height(5.dp))
+
+                OutlinedTextField(
+                    value = fat,
+                    onValueChange = { if (it.all { char -> char.isDigit() }) fat = it },
+                    label = { Text("Grasas (g)", color = textColor.copy(alpha = 0.7f)) },
+                    leadingIcon =
+                        {
+                            Text(
+                                "🥑",
+                                modifier = Modifier.size(24.dp),
+                                color = orangePrimary
+                                )
+                        },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = darkSurface,
+                        unfocusedContainerColor = darkSurface,
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedLabelColor = orangePrimary,
+                        unfocusedLabelColor = textColor.copy(alpha = 0.6f),
+                        cursorColor = orangePrimary,
+                        focusedIndicatorColor = orangePrimary,
+                        unfocusedIndicatorColor = Color(0xFF2A2A3C)
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = calories.isBlank() && mensaje.isNotEmpty(),
+                    suffix = {
+                        Text(
+                            "g",
+                            color = textColor.copy(alpha = 0.7f)
+                        )
+                    }
+                )
+
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // Botón con gradiente naranja
@@ -254,7 +337,9 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
                             val alimento = hashMapOf(
                                 "name" to name,
                                 "details" to details,
-                                "calories" to calories
+                                "calories" to calories,
+                                "protein" to protein,
+                                "fat" to fat
                             )
 
                             db.collection("alimentos")

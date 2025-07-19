@@ -48,6 +48,8 @@ fun EditFoodScreen(
     var name by remember { mutableStateOf("") }
     var details by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
+    var protein by remember { mutableStateOf("") } // Nuevo campo: proteínas
+    var fat by remember { mutableStateOf("") }     // Nuevo campo: grasas
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
@@ -172,6 +174,16 @@ fun EditFoodScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Sección de información nutricional
+                    Text(
+                        text = "Información Nutricional",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = orangePrimary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    )
+
                     // Campo Calorías
                     OutlinedTextField(
                         value = calories,
@@ -207,13 +219,16 @@ fun EditFoodScreen(
                         }
                     )
 
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Campo Proteínas
                     OutlinedTextField(
-                        value = calories,
-                        onValueChange = { if (it.all { char -> char.isDigit() }) calories = it },
-                        label = { Text("Calorías (kcal)", color = textColor.copy(alpha = 0.7f)) },
+                        value = protein,
+                        onValueChange = { if (it.all { char -> char.isDigit() }) protein = it },
+                        label = { Text("Proteínas (g)", color = textColor.copy(alpha = 0.7f)) },
                         leadingIcon = {
                             Text(
-                                "🔥",
+                                "🥩", // Icono de proteínas
                                 modifier = Modifier.size(24.dp),
                                 color = orangePrimary
                             )
@@ -235,7 +250,44 @@ fun EditFoodScreen(
                         modifier = Modifier.fillMaxWidth(),
                         suffix = {
                             Text(
-                                "kcal",
+                                "g",
+                                color = textColor.copy(alpha = 0.7f)
+                            )
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Campo Grasas
+                    OutlinedTextField(
+                        value = fat,
+                        onValueChange = { if (it.all { char -> char.isDigit() }) fat = it },
+                        label = { Text("Grasas (g)", color = textColor.copy(alpha = 0.7f)) },
+                        leadingIcon = {
+                            Text(
+                                "🥑", // Icono de grasas
+                                modifier = Modifier.size(24.dp),
+                                color = orangePrimary
+                            )
+                        },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = darkSurface,
+                            unfocusedContainerColor = darkSurface,
+                            focusedTextColor = textColor,
+                            unfocusedTextColor = textColor,
+                            focusedLabelColor = orangePrimary,
+                            unfocusedLabelColor = textColor.copy(alpha = 0.6f),
+                            cursorColor = orangePrimary,
+                            focusedIndicatorColor = orangePrimary,
+                            unfocusedIndicatorColor = Color(0xFF2A2A3C)
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        suffix = {
+                            Text(
+                                "g",
                                 color = textColor.copy(alpha = 0.7f)
                             )
                         }
@@ -293,7 +345,9 @@ fun EditFoodScreen(
                             val updatedFood = mapOf(
                                 "name" to name,
                                 "details" to details,
-                                "calories" to calories
+                                "calories" to calories,
+                                "protein" to protein, // Nuevo campo
+                                "fat" to fat          // Nuevo campo
                             )
 
                             db.collection("alimentos").document(foodItemId)
