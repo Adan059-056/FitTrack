@@ -22,15 +22,15 @@ fun MainBottonBar(
     // Definimos las rutas correspondientes a cada ítem
     val routes = listOf(
         "home",        // Para el primer ítem (Home)
-        "favorites",  // Para el segundo ítem (Actividades)
+        //"favorites",  // Para el segundo ítem (Actividades)
         "food",        // Para el tercer ítem (Alimentos)
         "profile"      // Para el cuarto ítem (Perfil)
     )
     NavigationBar(containerColor = colorResource(R.color.darkBlue)){
         val items = listOf(
-            R.drawable.btn_1 to "Home",
-            R.drawable.btn_2 to "Favorites",
-            R.drawable.btn_3 to "Alimentos",
+            R.drawable.btn_1 to "Dashboard",
+            //R.drawable.btn_2 to "Favorites",
+            R.drawable.btn_7 to "Alimentación",
             R.drawable.btn_4 to "Perfil",
         )
         items.forEachIndexed { index, (icon,label)->
