@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.proyectoe.ui.auth.LoginActivity
 import com.example.proyectoe.ui.dashboard.MainActivity
+import com.example.proyectoe.ui.intro.IntroActivity
 import com.google.firebase.auth.FirebaseAuth
 
 class SplashActivity : AppCompatActivity() {
@@ -21,8 +22,8 @@ class SplashActivity : AppCompatActivity() {
             // Si el usuario está autenticado, ir a MainActivity
             startActivity(Intent(this, MainActivity::class.java))
         } else {
-            // Si no está autenticado, ir a LoginActivity
-            startActivity(Intent(this, LoginActivity::class.java))
+            // Si no está autenticado, ir a introActivity
+            startActivity(Intent(this, IntroActivity::class.java))
         }
         finish() // Cierra la actividad para no volver a ella
     }
