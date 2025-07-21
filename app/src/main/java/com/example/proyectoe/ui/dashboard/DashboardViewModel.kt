@@ -20,7 +20,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         val distanceKm = distanceMeters / 1000f
         String.format("%.2f", distanceKm).toFloat()
     }
-    //PARA LA GRAFICA
+    //Hay que modificar para que se ajuste segun tus objetivos
     val dailyStepGoal = 10000f
 
     val stepProgressPercentage: LiveData<Float> = currentSteps.map { steps ->

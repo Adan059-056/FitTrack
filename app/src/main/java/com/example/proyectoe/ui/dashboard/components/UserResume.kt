@@ -81,15 +81,15 @@ fun UserResume(currentSteps: Int, distanceKm: Float) {
             )
 
             //valores de la grafica
-            val dailyStepGoal = 10000f // meta de pasos
+            val dailyStepGoal = 500f // meta de pasos
             val currentStepsFloat = currentSteps.toFloat()
             val completedSteps = if (currentStepsFloat > dailyStepGoal) dailyStepGoal else currentStepsFloat
             val remainingSteps = dailyStepGoal - completedSteps
 
             // colores de la grafica
             val pieChartSegmentColors = ArrayList<Int>()
-            val completedColorInt = android.graphics.Color.parseColor("#FF4444") // rojo
-            val remainingColorInt = android.graphics.Color.parseColor("#FFAA00") // naranja
+            val completedColorInt = android.graphics.Color.parseColor("#FF3B3B") // rojo
+            val remainingColorInt = android.graphics.Color.parseColor("#50000066") // naranja
             val finalColorInt = android.graphics.Color.parseColor("#31A84F") // verde
 
             val pieChartData = mutableMapOf<String, Float>()
