@@ -27,6 +27,10 @@ import com.example.proyectoe.ui.dashboard.components.MainBottonBar
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 
+import com.example.proyectoe.ui.Food.EditFoodScreen
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
+
 class MainActivity : ComponentActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -140,13 +144,34 @@ class MainActivity : ComponentActivity() {
                         composable("food") {
                             FoodScreen(
                                 onBack = { navController.popBackStack() },
-                                onAddFood = { navController.navigate("add_food_route") }
+                                onAddFood = { navController.navigate("add_food_route") },
+                                onEditFood = { foodId -> navController.navigate("edit_food_route/$foodId") }
                             )
                         }
                         composable("add_food_route") {
                             AddFoodScreen(
                                 onBack = { navController.popBackStack() }
                             )
+                        }
+                        composable(
+                            route = "edit_food_route/{foodId}", // Define la ruta con el argumento
+                            arguments = listOf(navArgument("foodId") { type = NavType.StringType }) // Especifica el tipo
+                        ) { backStackEntry ->
+                            val foodId = backStackEntry.arguments?.getString("foodId")
+                            if (foodId != null) {
+                                EditFoodScreen(
+                                    foodItemId = foodId,
+                                    onBack = { navController.popBackStack() },
+                                    onFoodUpdated = {
+                                        // Después de actualizar, puedes volver a la pantalla de alimentos
+                                        navController.popBackStack()
+                                    }
+                                )
+                            } else {
+                                // Manejar el caso de ID nulo, quizás mostrar un Toast o un log
+                                Toast.makeText(this@MainActivity, "Error: ID de alimento no proporcionado", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack() // Regresar para evitar un estado roto
+                            }
                         }
                         composable("profile") {
                             ProfileScreen(

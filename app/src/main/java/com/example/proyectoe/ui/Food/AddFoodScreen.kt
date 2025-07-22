@@ -27,25 +27,56 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.proyectoe.database.FoodItem
+import androidx.compose.runtime.derivedStateOf
+import com.example.proyectoe.viewmodel.*
+import androidx.compose.foundation.text.selection.TextSelectionColors
 
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddFoodScreen(onBack: () -> Unit = {}) {
+fun AddFoodScreen(
+    foodId: String? = null, // Parámetro para saber si es modo edición
+    onBack: () -> Unit = {},
+    foodViewModel: FoodViewModel = viewModel()
+) {
+
     var name by remember { mutableStateOf("") }
     var details by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
-    var mensaje by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    var protein by remember { mutableStateOf("") } // Nuevo campo
+    var protein by remember { mutableStateOf("") }
     var fat by remember { mutableStateOf("") }
+    var carbohydrates by remember{ mutableStateOf("") }
+
+    var localMessage by remember { mutableStateOf("") }
+    val isLoading = foodViewModel.isLoading.collectAsState().value
+    val firebaseErrorMessage = foodViewModel.errorMessage.collectAsState().value
+    val isEditing by remember { mutableStateOf(foodId != null) }
+
+    LaunchedEffect(foodId) {
+        if (isEditing && foodId != null) {
+            val food = foodViewModel.getFoodItemById(foodId)
+            food?.let {
+                name = it.name
+                details = it.details // Si FoodItem tiene details
+                calories = it.calories.toString()
+                protein = it.protein.toString()
+                fat = it.fat.toString()
+                carbohydrates = it.carbohydrates.toString() // Cargar carbohidratos
+            }
+        }
+    }
 
     // Validación
-    val isFormValid by derivedStateOf {
-        name.isNotBlank() &&
-                calories.isNotBlank() && calories.toIntOrNull() != null &&
-                protein.isNotBlank() && protein.toIntOrNull() != null &&
-                fat.isNotBlank() && fat.toIntOrNull() != null
+    val isFormValid by remember {
+        derivedStateOf {
+            name.isNotBlank() &&
+                    calories.toFloatOrNull() != null && calories.toFloatOrNull()!! >= 0 &&
+                    protein.toFloatOrNull() != null && protein.toFloatOrNull()!! >= 0 &&
+                    fat.toFloatOrNull() != null && fat.toFloatOrNull()!! >= 0 &&
+                    carbohydrates.toFloatOrNull() != null && carbohydrates.toFloatOrNull()!! >= 0 // Validar carbohidratos
+        }
     }
 
     // Definición de colores según tu tema
@@ -119,7 +150,7 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
                         Spacer(Modifier.width(16.dp))
 
                         Text(
-                            text = "Agrega nuevos alimentos\na tu base de datos",
+                            text = if (isEditing) "Edita la información de tu alimento" else "Agrega nuevos alimentos\na tu base de datos",
                             style = MaterialTheme.typography.titleMedium,
                             color = textColor
                         )
@@ -131,28 +162,27 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Nombre del alimento", color = textColor.copy(alpha = 0.7f)) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Filled.Fastfood,
-                            null,
-                            tint = orangePrimary
-                        )
-                    },
+                    leadingIcon = { Icon(Icons.Filled.Fastfood, null, tint = orangePrimary) },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = darkSurface,
-                        unfocusedContainerColor = darkSurface,
+                        focusedContainerColor = cardColor, // Usar cardColor para fondo sólido
+                        unfocusedContainerColor = cardColor,
                         focusedTextColor = textColor,
                         unfocusedTextColor = textColor,
                         focusedLabelColor = orangePrimary,
                         unfocusedLabelColor = textColor.copy(alpha = 0.6f),
                         cursorColor = orangePrimary,
                         focusedIndicatorColor = orangePrimary,
-                        unfocusedIndicatorColor = Color(0xFF2A2A3C)
+                        unfocusedIndicatorColor = Color(0xFF2A2A3C),
+                        // Añadir colores de selección
+                        selectionColors = TextSelectionColors(
+                            handleColor = orangePrimary,
+                            backgroundColor = orangePrimary.copy(alpha = 0.4f)
+                        )
                     ),
                     modifier = Modifier.fillMaxWidth(),
-                    isError = name.isBlank() && mensaje.isNotEmpty()
+                    isError = name.isBlank() && localMessage.isNotEmpty()
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -162,24 +192,22 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
                     value = details,
                     onValueChange = { details = it },
                     label = { Text("Descripción (opcional)", color = textColor.copy(alpha = 0.7f)) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Filled.Info,
-                            null,
-                            tint = orangePrimary
-                        )
-                    },
+                    leadingIcon = { Icon(Icons.Filled.Info, null, tint = orangePrimary) },
                     shape = RoundedCornerShape(12.dp),
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = darkSurface,
-                        unfocusedContainerColor = darkSurface,
+                        focusedContainerColor = cardColor,
+                        unfocusedContainerColor = cardColor,
                         focusedTextColor = textColor,
                         unfocusedTextColor = textColor,
                         focusedLabelColor = orangePrimary,
                         unfocusedLabelColor = textColor.copy(alpha = 0.6f),
                         cursorColor = orangePrimary,
                         focusedIndicatorColor = orangePrimary,
-                        unfocusedIndicatorColor = Color(0xFF2A2A3C)
+                        unfocusedIndicatorColor = Color(0xFF2A2A3C),
+                        selectionColors = TextSelectionColors(
+                            handleColor = orangePrimary,
+                            backgroundColor = orangePrimary.copy(alpha = 0.4f)
+                        )
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -192,81 +220,134 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
                 // Campo Calorías
                 OutlinedTextField(
                     value = calories,
-                    onValueChange = { if (it.all { char -> char.isDigit() }) calories = it },
-                    label = { Text("Calorías (kcal)", color = textColor.copy(alpha = 0.7f)) },
-                    leadingIcon = {
-                        Text(
-                            "🔥",
-                            modifier = Modifier.size(24.dp),
-                            color = orangePrimary
-                        )
+                    // Permite números y un solo punto decimal
+                    onValueChange = { newValue ->
+                        calories = newValue.filter { it.isDigit() || (it == '.' && !calories.contains('.')) }
                     },
+                    label = { Text("Calorías (kcal)", color = textColor.copy(alpha = 0.7f)) },
+                    leadingIcon = { Text("🔥", modifier = Modifier.size(24.dp), color = orangePrimary) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(12.dp),
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = darkSurface,
-                        unfocusedContainerColor = darkSurface,
+                        focusedContainerColor = cardColor,
+                        unfocusedContainerColor = cardColor,
                         focusedTextColor = textColor,
                         unfocusedTextColor = textColor,
                         focusedLabelColor = orangePrimary,
                         unfocusedLabelColor = textColor.copy(alpha = 0.6f),
                         cursorColor = orangePrimary,
                         focusedIndicatorColor = orangePrimary,
-                        unfocusedIndicatorColor = Color(0xFF2A2A3C)
+                        unfocusedIndicatorColor = Color(0xFF2A2A3C),
+                        selectionColors = TextSelectionColors(
+                            handleColor = orangePrimary,
+                            backgroundColor = orangePrimary.copy(alpha = 0.4f)
+                        )
                     ),
                     modifier = Modifier.fillMaxWidth(),
-                    isError = calories.isBlank() && mensaje.isNotEmpty(),
-                    suffix = {
-                        Text(
-                            "kcal",
-                            color = textColor.copy(alpha = 0.7f)
-                        )
-                    }
+                    isError = (calories.toFloatOrNull() == null && calories.isNotBlank()) || (calories.isBlank() && localMessage.isNotEmpty()),
+                    suffix = { Text("kcal", color = textColor.copy(alpha = 0.7f)) }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-
+                //proteinas
                 OutlinedTextField(
                     value = protein,
-                    onValueChange = { if (it.all { char -> char.isDigit() }) protein = it },
+                    onValueChange = { newValue ->
+                        protein = newValue.filter { it.isDigit() || (it == '.' && !protein.contains('.')) }
+                    },
                     label = { Text("Proteínas (g)", color = textColor.copy(alpha = 0.7f)) },
-                    leadingIcon =
-                        {
-                        Text(
-                            "🥩",
-                            modifier = Modifier.size(24.dp),
-                            color = orangePrimary
-                        )
-                        },
+                    leadingIcon = { Text("🥩", modifier = Modifier.size(24.dp), color = orangePrimary) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(12.dp),
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = darkSurface,
-                        unfocusedContainerColor = darkSurface,
+                        focusedContainerColor = cardColor,
+                        unfocusedContainerColor = cardColor,
                         focusedTextColor = textColor,
                         unfocusedTextColor = textColor,
                         focusedLabelColor = orangePrimary,
                         unfocusedLabelColor = textColor.copy(alpha = 0.6f),
                         cursorColor = orangePrimary,
                         focusedIndicatorColor = orangePrimary,
-                        unfocusedIndicatorColor = Color(0xFF2A2A3C)
+                        unfocusedIndicatorColor = Color(0xFF2A2A3C),
+                        selectionColors = TextSelectionColors(
+                            handleColor = orangePrimary,
+                            backgroundColor = orangePrimary.copy(alpha = 0.4f)
+                        )
                     ),
                     modifier = Modifier.fillMaxWidth(),
-                    isError = calories.isBlank() && mensaje.isNotEmpty(),
-                    suffix = {
-                        Text(
-                            "g",
-                            color = textColor.copy(alpha = 0.7f)
-                        )
-                    }
+                    isError = (protein.toFloatOrNull() == null && protein.isNotBlank()) || (protein.isBlank() && localMessage.isNotEmpty()),
+                    suffix = { Text("g", color = textColor.copy(alpha = 0.7f)) }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+                //grasas
+                OutlinedTextField(
+                    value = fat,
+                    onValueChange = { newValue ->
+                        fat = newValue.filter { it.isDigit() || (it == '.' && !fat.contains('.')) }
+                    },
+                    label = { Text("Grasas (g)", color = textColor.copy(alpha = 0.7f)) },
+                    leadingIcon = { Text("🥑", modifier = Modifier.size(24.dp), color = orangePrimary) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = cardColor,
+                        unfocusedContainerColor = cardColor,
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedLabelColor = orangePrimary,
+                        unfocusedLabelColor = textColor.copy(alpha = 0.6f),
+                        cursorColor = orangePrimary,
+                        focusedIndicatorColor = orangePrimary,
+                        unfocusedIndicatorColor = Color(0xFF2A2A3C),
+                        selectionColors = TextSelectionColors(
+                            handleColor = orangePrimary,
+                            backgroundColor = orangePrimary.copy(alpha = 0.4f)
+                        )
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = (fat.toFloatOrNull() == null && fat.isNotBlank()) || (fat.isBlank() && localMessage.isNotEmpty()),
+                    suffix = { Text("g", color = textColor.copy(alpha = 0.7f)) }
+                )
 
-                // Mensaje de validación
-                if (mensaje.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                //carbos
+                OutlinedTextField(
+                    value = carbohydrates,
+                    onValueChange = { newValue ->
+                        carbohydrates = newValue.filter { it.isDigit() || (it == '.' && !carbohydrates.contains('.')) }
+                    },
+                    label = { Text("Carbohidratos (g)", color = textColor.copy(alpha = 0.7f)) },
+                    leadingIcon = { Text("🍚", modifier = Modifier.size(24.dp), color = orangePrimary) }, // Icono de carbohidratos
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = cardColor,
+                        unfocusedContainerColor = cardColor,
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedLabelColor = orangePrimary,
+                        unfocusedLabelColor = textColor.copy(alpha = 0.6f),
+                        cursorColor = orangePrimary,
+                        focusedIndicatorColor = orangePrimary,
+                        unfocusedIndicatorColor = Color(0xFF2A2A3C),
+                        selectionColors = TextSelectionColors(
+                            handleColor = orangePrimary,
+                            backgroundColor = orangePrimary.copy(alpha = 0.4f)
+                        )
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = (carbohydrates.toFloatOrNull() == null && carbohydrates.isNotBlank()) || (carbohydrates.isBlank() && localMessage.isNotEmpty()),
+                    suffix = { Text("g", color = textColor.copy(alpha = 0.7f)) }
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+                //eroor o exito
+                if (localMessage.isNotEmpty()) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -274,57 +355,41 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "Error",
-                            tint = if ("exitosamente" in mensaje) Color(0xFF4CAF50) else Color(0xFFF44336),
+                            imageVector = if ("exitosamente" in localMessage) Icons.Default.Info else Icons.Filled.Close,
+                            contentDescription = "Estado",
+                            tint = if ("exitosamente" in localMessage) Color(0xFF4CAF50) else Color(0xFFF44336),
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = mensaje,
-                            color = if ("exitosamente" in mensaje) Color(0xFF4CAF50) else Color(0xFFF44336),
+                            text = localMessage,
+                            color = if ("exitosamente" in localMessage) Color(0xFF4CAF50) else Color(0xFFF44336),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(5.dp))
-
-                OutlinedTextField(
-                    value = fat,
-                    onValueChange = { if (it.all { char -> char.isDigit() }) fat = it },
-                    label = { Text("Grasas (g)", color = textColor.copy(alpha = 0.7f)) },
-                    leadingIcon =
-                        {
-                            Text(
-                                "🥑",
-                                modifier = Modifier.size(24.dp),
-                                color = orangePrimary
-                                )
-                        },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = darkSurface,
-                        unfocusedContainerColor = darkSurface,
-                        focusedTextColor = textColor,
-                        unfocusedTextColor = textColor,
-                        focusedLabelColor = orangePrimary,
-                        unfocusedLabelColor = textColor.copy(alpha = 0.6f),
-                        cursorColor = orangePrimary,
-                        focusedIndicatorColor = orangePrimary,
-                        unfocusedIndicatorColor = Color(0xFF2A2A3C)
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = calories.isBlank() && mensaje.isNotEmpty(),
-                    suffix = {
+                if (firebaseErrorMessage != null && localMessage.isEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Error Firebase",
+                            tint = Color(0xFFF44336),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
                         Text(
-                            "g",
-                            color = textColor.copy(alpha = 0.7f)
+                            text = "Error Firebase: $firebaseErrorMessage",
+                            color = Color(0xFFF44336),
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
-                )
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -332,38 +397,54 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
                 Button(
                     onClick = {
                         if (isFormValid) {
-                            isLoading = true
-                            val db = FirebaseFirestore.getInstance()
-                            val alimento = hashMapOf(
-                                "name" to name,
-                                "details" to details,
-                                "calories" to calories,
-                                "protein" to protein,
-                                "fat" to fat
+                            val alimento = FoodItem(
+                                id = foodId ?: "", // Solo pasa el ID si estamos editando
+                                name = name,
+                                details = details,
+                                calories = calories.toFloatOrNull() ?: 0f,
+                                protein = protein.toFloatOrNull() ?: 0f,
+                                fat = fat.toFloatOrNull() ?: 0f,
+                                carbohydrates = carbohydrates.toFloatOrNull() ?: 0f // Guardar carbohidratos
                             )
 
-                            db.collection("alimentos")
-                                .add(alimento)
-                                .addOnSuccessListener {
-                                    mensaje = "✅ Alimento agregado exitosamente"
-                                    name = ""
-                                    details = ""
-                                    calories = ""
-                                    isLoading = false
-                                }
-                                .addOnFailureListener {
-                                    mensaje = "❌ Error al guardar: ${it.message}"
-                                    isLoading = false
-                                }
+                            if (isEditing) {
+                                foodViewModel.updateFoodItem(
+                                    alimento,
+                                    onSuccess = {
+                                        localMessage = "✅ Alimento actualizado exitosamente"
+                                        // Puedes optar por limpiar campos o no al editar, o regresar
+                                        // onBack()
+                                    },
+                                    onFailure = { errorMsg ->
+                                        localMessage = "❌ Error al actualizar: $errorMsg"
+                                    }
+                                )
+                            } else {
+                                foodViewModel.addFood(
+                                    alimento,
+                                    onSuccess = {
+                                        localMessage = "✅ Alimento agregado exitosamente"
+                                        name = ""
+                                        details = ""
+                                        calories = ""
+                                        protein = ""
+                                        fat = ""
+                                        carbohydrates = "" // Limpiar también carbohidratos
+                                    },
+                                    onFailure = { errorMsg ->
+                                        localMessage = "❌ Error al guardar: $errorMsg"
+                                    }
+                                )
+                            }
                         } else {
-                            mensaje = "⚠️ Completa todos los campos requeridos"
+                            localMessage = "⚠️ Completa todos los campos requeridos y asegúrate que los valores sean números válidos."
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(16.dp),
-                    enabled = !isLoading,
+                    enabled = !isLoading && isFormValid, // Deshabilita el botón si isLoading o el formulario no es válido
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent
                     )
@@ -386,7 +467,7 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
                             CircularProgressIndicator(color = Color.White)
                         } else {
                             Text(
-                                text = "GUARDAR ALIMENTO",
+                                text = if (isEditing) "GUARDAR CAMBIOS" else "GUARDAR ALIMENTO",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
                                 color = Color.White
@@ -395,9 +476,8 @@ fun AddFoodScreen(onBack: () -> Unit = {}) {
                     }
                 }
 
-                // Texto informativo
                 Text(
-                    text = "Los campos con * son obligatorios",
+                    text = "Asegúrate de que los campos numéricos sean válidos.",
                     style = MaterialTheme.typography.bodySmall,
                     color = textColor.copy(alpha = 0.6f),
                     modifier = Modifier.padding(top = 16.dp)

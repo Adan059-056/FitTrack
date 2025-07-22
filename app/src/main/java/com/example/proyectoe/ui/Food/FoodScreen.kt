@@ -1,35 +1,40 @@
+// app/src/main/java/com/example/proyectoe/ui/Food/FoodScreen.kt
 package com.example.proyectoe.ui.Food
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.* // Asegúrate de que esta importación sea correcta para Material3
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.text.KeyboardOptions // Importación necesaria
+import androidx.compose.ui.text.input.KeyboardType // Importación necesaria
+import androidx.compose.material3.LocalTextStyle // Importación necesaria para textStyle
+import androidx.compose.ui.graphics.SolidColor // Necesario para cursorBrush con un solo color
+import androidx.compose.foundation.text.selection.TextSelectionColors
 
-// Definición de colores para el tema oscuro
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.proyectoe.database.FoodItem // Importa tu FoodItem
+
+// Definición de colores para el tema oscuro (los de tu original)
 val darkBlueBlack = Color(0xFF0A0E21)
 val orangePrimary = Color(0xFFFF9800)
 val orangeSecondary = Color(0xFFFF5722)
@@ -39,9 +44,21 @@ val cardColor = Color(0xFF1E1E2D)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FoodScreen(onBack: () -> Unit = {}, onAddFood: () -> Unit = {}) {
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var activeSearch by rememberSaveable { mutableStateOf(false) }
+fun FoodScreen(
+    onBack: () -> Unit = {},
+    onAddFood: () -> Unit = {},
+    onEditFood: (String) -> Unit = {},
+    foodViewModel: FoodViewModel = viewModel()
+) {
+    val consumedFoodEntries by foodViewModel.consumedFoodEntries.collectAsState()
+    val isLoading by foodViewModel.isLoading.collectAsState()
+    val errorMessage by foodViewModel.errorMessage.collectAsState()
+    val searchQuery by foodViewModel.searchQuery.collectAsState()
+    val searchResults by foodViewModel.searchResults.collectAsState()
+    val dailyTotals by foodViewModel.dailyTotals.collectAsState()
+
+    var showAddFoodToMealDialog by remember { mutableStateOf(false) }
+    var selectedFoodItemForMeal by remember { mutableStateOf<FoodItem?>(null) }
 
     Scaffold(
         topBar = {
@@ -64,61 +81,141 @@ fun FoodScreen(onBack: () -> Unit = {}, onAddFood: () -> Unit = {}) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { onAddFood() },
+                onClick = onAddFood,
                 containerColor = orangePrimary,
                 contentColor = Color.White
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Agregar alimento")
+                Icon(Icons.Default.Add, contentDescription = "Agregar alimento al catálogo")
             }
         },
         containerColor = darkBlueBlack
     ) { innerPadding ->
-        Box(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                
-                // Resumen de calorías
-                item {
-                    CalorieSummaryCard()
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+            item {
+                CalorieSummaryCard(dailyTotals.totalCalories.toInt())
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                // Macronutrientes
-                item {
-                    MacronutrientsCard()
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+            item {
+                MacronutrientsCard(dailyTotals.totalProtein, dailyTotals.totalFat, dailyTotals.totalCarbohydrates)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                // Desglose por comidas
-                item {
-                    MealBreakdownSection()
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+            item {
+                Text(
+                    text = "Comidas del Día",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                MealBreakdownSection(
+                    consumedFoodEntries = consumedFoodEntries,
+                    onEditFoodEntry = { entryId -> /* TODO: Implementar edición de entrada de consumo */ },
+                    onAddFoodToMeal = { mealType -> /* Este callback se usará para el botón en MealRow */ }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                // Selector de categorías
-                item {
-                    CategorySelector()
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+            // --- Buscador de Alimentos del Catálogo ---
+            item {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { foodViewModel.onSearchQueryChanged(it) },
+                    label = { Text("Buscar alimento...", color = textColor.copy(alpha = 0.7f)) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = textColor) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+//                    colors = TextFieldDefaults.colors(
+//                        focusedTextColor = textColor,
+//                        unfocusedTextColor = textColor,
+//                        focusedContainerColor = Color.Transparent, // Fondo transparente
+//                        unfocusedContainerColor = Color.Transparent, // Fondo transparente
+//                        focusedBorderColor = orangePrimary,
+//                        unfocusedBorderColor = textColor.copy(alpha = 0.3f),
+//                        cursorColor = orangePrimary,
+//                        focusedLabelColor = orangePrimary, // Color del label cuando está enfocado
+//                        unfocusedLabelColor = textColor.copy(alpha = 0.7f) // Color del label cuando no está enfocado
+//                        // Puedes añadir más colores aquí si es necesario para tu tema
+//                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                // Lista de alimentos
-                item {
-                    FoodItemsList()
+            item {
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = orangePrimary)
+                    }
+                } else if (errorMessage != null) {
+                    Text(
+                        text = "Error: $errorMessage",
+                        color = Color.Red,
+                        modifier = Modifier.fillMaxWidth().padding(8.dp)
+                    )
+                } else if (searchQuery.isNotBlank() && searchResults.isEmpty()) {
+                    Text(
+                        text = "No se encontraron resultados para '${searchQuery}'.",
+                        color = textColor.copy(alpha = 0.7f),
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = onAddFood,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = orangePrimary)
+                    ) {
+                        Text("Añadir '${searchQuery}' al catálogo")
+                    }
                 }
+            }
+
+            items(searchResults) { food ->
+                FoodItemCatalogRow(food = food, onAddClick = { selectedCatalogFood ->
+                    selectedFoodItemForMeal = selectedCatalogFood
+                    showAddFoodToMealDialog = true
+                }, onEditClick = { foodId ->
+                    onEditFood(foodId)
+                })
+                Divider(
+                    color = textColor.copy(alpha = 0.1f),
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
             }
         }
     }
+
+    if (showAddFoodToMealDialog && selectedFoodItemForMeal != null) {
+        AddFoodToMealDialog(
+            foodItem = selectedFoodItemForMeal!!,
+            onDismiss = { showAddFoodToMealDialog = false },
+            onAdd = { food, mealType, quantity ->
+                foodViewModel.addConsumedFoodEntry(food, mealType, quantity) { success ->
+                    showAddFoodToMealDialog = false
+                    selectedFoodItemForMeal = null
+                    // Aquí puedes mostrar un Toast o SnackBar según el 'success'
+                }
+            }
+        )
+    }
 }
 
+// Resto de tus Composable (CalorieSummaryCard, NutrientCircle, MacronutrientsCard, MacronutrientRow, Nutrient)
+// ... se mantienen como te los pasé, ya que esos no estaban causando problemas.
+
 @Composable
-fun CalorieSummaryCard() {
+fun CalorieSummaryCard(totalCalories: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -132,8 +229,8 @@ fun CalorieSummaryCard() {
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            NutrientCircle(title = "Consumidas", value = "0", total = "1,686", color = orangePrimary)
-            NutrientCircle(title = "Restantes", value = "1,686", total = "", color = Color(0xFF4CAF50))
+            NutrientCircle(title = "Consumidas", value = totalCalories.toString(), total = "2000", color = orangePrimary)
+            NutrientCircle(title = "Restantes", value = (2000 - totalCalories).coerceAtLeast(0).toString(), total = "", color = Color(0xFF4CAF50))
             NutrientCircle(title = "Quemadas", value = "0", total = "", color = orangeSecondary)
         }
     }
@@ -178,11 +275,11 @@ fun NutrientCircle(title: String, value: String, total: String, color: Color) {
 }
 
 @Composable
-fun MacronutrientsCard() {
+fun MacronutrientsCard(protein: Float, fat: Float, carbohydrates: Float) {
     val nutrients = listOf(
-        Nutrient("Carbohidratos", "0 g", "206 g", 0.2f),
-        Nutrient("Proteínas", "0 g", "82 g", 0.1f),
-        Nutrient("Grasas", "0 g", "54 g", 0.05f)
+        Nutrient("Carbohidratos", "${carbohydrates.toInt()} g", "206 g", carbohydrates / 206f),
+        Nutrient("Proteínas", "${protein.toInt()} g", "82 g", protein / 82f),
+        Nutrient("Grasas", "${fat.toInt()} g", "54 g", fat / 54f)
     )
 
     Card(
@@ -236,7 +333,6 @@ fun MacronutrientRow(nutrient: Nutrient) {
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Barra de progreso
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -246,7 +342,7 @@ fun MacronutrientRow(nutrient: Nutrient) {
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(nutrient.progress)
+                    .fillMaxWidth(nutrient.progress.coerceIn(0f, 1f))
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp))
                     .background(orangePrimary)
@@ -258,13 +354,12 @@ fun MacronutrientRow(nutrient: Nutrient) {
 data class Nutrient(val name: String, val consumed: String, val total: String, val progress: Float)
 
 @Composable
-fun MealBreakdownSection() {
-    val meals = listOf(
-        Meal("Desayuno", "0 / 506 kcal"),
-        Meal("Almuerzo", "0 / 674 kcal"),
-        Meal("Cena", "0 / 421 kcal"),
-        Meal("Snacks", "0 / 84 kcal")
-    )
+fun MealBreakdownSection(
+    consumedFoodEntries: List<ConsumedFoodEntry>,
+    onEditFoodEntry: (String) -> Unit,
+    onAddFoodToMeal: (String) -> Unit
+) {
+    val mealsMap = consumedFoodEntries.groupBy { it.mealType }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -274,134 +369,133 @@ fun MealBreakdownSection() {
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Comidas del día",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = textColor,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            val mealTypes = listOf("Desayuno", "Almuerzo", "Cena", "Snacks")
+            mealTypes.forEach { mealType ->
+                val foodsInMeal = mealsMap[mealType] ?: emptyList()
+                val caloriesInMeal = foodsInMeal.sumOf { it.calories.toDouble() }.toInt()
+                val totalMealCalories = when (mealType) {
+                    "Desayuno" -> "506"
+                    "Almuerzo" -> "674"
+                    "Cena" -> "421"
+                    "Snacks" -> "84"
+                    else -> "0"
+                }
 
-            meals.forEach { meal ->
-                MealRow(meal = meal)
-                if (meal != meals.last()) {
+                MealRow(
+                    mealName = mealType,
+                    currentCalories = caloriesInMeal.toString(),
+                    totalCaloriesTarget = totalMealCalories,
+                    foodsForMeal = foodsInMeal,
+                    onFoodClick = { entryId -> onEditFoodEntry(entryId) },
+                    onAddFoodToMeal = { onAddFoodToMeal(mealType) }
+                )
+                if (mealType != mealTypes.last()) {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
+            }
+
+            if (consumedFoodEntries.isEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "No hay alimentos registrados para hoy. Busca y añade para empezar.",
+                    color = textColor.copy(alpha = 0.7f),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
 }
 
 @Composable
-fun MealRow(meal: Meal) {
-    Row(
+fun MealRow(
+    mealName: String,
+    currentCalories: String,
+    totalCaloriesTarget: String,
+    foodsForMeal: List<ConsumedFoodEntry>,
+    onFoodClick: (String) -> Unit,
+    onAddFoodToMeal: (String) -> Unit
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(cardColor.copy(alpha = 0.8f))
             .border(1.dp, textColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .clickable { expanded = !expanded }
     ) {
-        Text(
-            text = meal.name,
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            color = textColor
-        )
-        Text(
-            text = meal.calories,
-            fontSize = 16.sp,
-            color = orangePrimary
-        )
-    }
-}
-
-data class Meal(val name: String, val calories: String)
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun CategorySelector() {
-    val categories = listOf("FRECUENTES", "RECIENTES", "FAVORITOS")
-    val pagerState = rememberPagerState(pageCount = { categories.size })
-    val coroutineScope = rememberCoroutineScope()
-    var selectedCategory by remember { mutableIntStateOf(0) }
-
-    Column {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            categories.forEachIndexed { index, category ->
-                Button(
-                    onClick = {
-                        selectedCategory = index
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(index)
-                        }
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedCategory == index) orangePrimary else Color.Transparent,
-                        contentColor = if (selectedCategory == index) Color.White else textColor.copy(alpha = 0.7f)
-                    ),
-                    contentPadding = PaddingValues(vertical = 8.dp),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = if (selectedCategory == index) 4.dp else 0.dp,
-                        pressedElevation = 0.dp,
-                        hoveredElevation = 0.dp
-                    ),
-                    border = if (selectedCategory != index) BorderStroke(1.dp, textColor.copy(alpha = 0.3f)) else null
-                ) {
-                    Text(category, fontSize = 12.sp)
-                }
-
-                if (index < categories.lastIndex) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        HorizontalPager(state = pagerState) { page ->
-            FoodItemsList()
-        }
-    }
-}
-
-@Composable
-fun FoodItemsList() {
-    val foodItems = listOf(
-        FoodItem("Arroz blanco, cocinado", "1 taza (158 g)", "205 kcal"),
-        FoodItem("Aceite de oliva", "1 cucharada (13% g)", "119 kcal"),
-        FoodItem("Sandía", "1 rodaja (286 g)", "86 kcal"),
-        FoodItem("Manzana", "1 pieza de fruta (182 g)", "95 kcal"),
-        FoodItem("Café", "1 taza (237 mL)", "2 kcal"),
-        FoodItem("Tortilla francesa 2 huevos", "Casera, 1 ración (100 g)", "141 kcal"),
-        FoodItem("Jamón", "1 rodaja (28 g) Listo", "46 kcal")
-    )
-
-    Column {
-        foodItems.forEach { food ->
-            FoodItemRow(food = food)
-            Divider(
-                color = textColor.copy(alpha = 0.1f),
-                thickness = 1.dp,
-                modifier = Modifier.padding(vertical = 8.dp)
+            Text(
+                text = mealName,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = textColor
+            )
+            Text(
+                text = "$currentCalories / $totalCaloriesTarget kcal",
+                fontSize = 16.sp,
+                color = orangePrimary
             )
         }
+
+        if (expanded) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (foodsForMeal.isEmpty()) {
+                Text(
+                    text = "No hay alimentos registrados para $mealName.",
+                    color = textColor.copy(alpha = 0.7f),
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            } else {
+                foodsForMeal.forEach { entry ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onFoodClick(entry.id) }
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = "${entry.name} (${entry.quantity.toInt()} unid.)", color = textColor.copy(alpha = 0.9f), fontSize = 14.sp)
+                        Text(text = "${entry.calories.toInt()} kcal", color = textColor.copy(alpha = 0.8f), fontSize = 14.sp)
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = { onAddFoodToMeal(mealName) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = orangePrimary
+                ),
+                border = BorderStroke(1.dp, orangePrimary),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Añadir alimento al $mealName")
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 
 @Composable
-fun FoodItemRow(food: FoodItem) {
+fun FoodItemCatalogRow(food: FoodItem, onAddClick: (FoodItem) -> Unit, onEditClick: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Acción al seleccionar */ }
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -413,7 +507,7 @@ fun FoodItemRow(food: FoodItem) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = food.name.take(1),
+                text = food.name.take(1).uppercase(),
                 color = orangePrimary,
                 fontWeight = FontWeight.Bold
             )
@@ -428,18 +522,128 @@ fun FoodItemRow(food: FoodItem) {
                 color = textColor
             )
             Text(
-                text = food.details,
+                text = "${food.calories} kcal, P:${food.protein}g, G:${food.fat}g, C:${food.carbohydrates}g",
                 color = textColor.copy(alpha = 0.7f),
-                fontSize = 14.sp
+                fontSize = 12.sp
             )
         }
 
-        Text(
-            text = food.calories,
-            fontWeight = FontWeight.Bold,
-            color = orangePrimary
-        )
+        IconButton(onClick = { onAddClick(food) }) {
+            Icon(Icons.Default.Add, contentDescription = "Añadir a comida", tint = orangePrimary)
+        }
+
+        IconButton(onClick = { onEditClick(food.id) }) {
+            Icon(Icons.Default.Search, contentDescription = "Ver detalles/Editar", tint = textColor.copy(alpha = 0.7f))
+        }
     }
 }
 
-data class FoodItem(val name: String, val details: String, val calories: String)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddFoodToMealDialog(
+    foodItem: FoodItem,
+    onDismiss: () -> Unit,
+    onAdd: (FoodItem, String, Float) -> Unit
+) {
+    var quantity by rememberSaveable { mutableStateOf("1") }
+    val mealTypes = listOf("Desayuno", "Almuerzo", "Cena", "Snacks")
+    var selectedMealType by rememberSaveable { mutableStateOf(mealTypes[0]) }
+    var expandedDropdown by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Añadir ${foodItem.name} a la comida", color = textColor) },
+        text = {
+            Column {
+                ExposedDropdownMenuBox(
+                    expanded = expandedDropdown,
+                    onExpandedChange = { expandedDropdown = !expandedDropdown },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = selectedMealType,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Tipo de Comida", color = textColor.copy(alpha = 0.7f)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+//                        colors = TextFieldDefaults.colors(
+//                            focusedTextColor = textColor,
+//                            unfocusedTextColor = textColor,
+//                            focusedContainerColor = Color.Transparent,
+//                            unfocusedContainerColor = Color.Transparent,
+//                            focusedBorderColor = orangePrimary,
+//                            unfocusedBorderColor = textColor.copy(alpha = 0.3f),
+//                            focusedLabelColor = orangePrimary,
+//                            unfocusedLabelColor = textColor.copy(alpha = 0.7f)
+//                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedDropdown,
+                        onDismissRequest = { expandedDropdown = false }
+                    ) {
+                        mealTypes.forEach { type ->
+                            DropdownMenuItem(
+                                text = { Text(type, color = textColor) },
+                                onClick = {
+                                    selectedMealType = type
+                                    expandedDropdown = false
+                                }
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = quantity,
+                    onValueChange = { newValue ->
+                        quantity = newValue.filter { it.isDigit() || (it == '.' && !quantity.contains('.')) }
+                    },
+                    label = { Text("Cantidad (unidades)", color = textColor.copy(alpha = 0.7f)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+//                    colors = TextFieldDefaults.colors(
+//                        focusedTextColor = textColor, // Tu color de texto cuando enfocado
+//                        unfocusedTextColor = textColor, // Tu color de texto cuando no enfocado
+//                        focusedContainerColor = Color.Transparent, // Fondo transparente
+//                        unfocusedContainerColor = Color.Transparent, // Fondo transparente
+//                        focusedBorderColor = orangePrimary, // Color del borde cuando enfocado
+//                        unfocusedBorderColor = textColor.copy(alpha = 0.3f), // Color del borde cuando no enfocado
+//                        cursorColor = orangePrimary, // Color del cursor
+//                        focusedLabelColor = orangePrimary, // Color del label cuando enfocado
+//                        unfocusedLabelColor = textColor.copy(alpha = 0.7f), // Color del label cuando no enfocado
+//                        // Puedes añadir más colores aquí si es necesario para tu tema
+//                        selectionColors = TextSelectionColors(
+//                            handleColor = orangePrimary, // Color de las 'handles' de selección
+//                            backgroundColor = orangePrimary.copy(alpha = 0.4f) // Color de fondo del texto seleccionado
+//                        )
+//                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val qtyFloat = quantity.toFloatOrNull() ?: 0f
+                    if (qtyFloat > 0) {
+                        onAdd(foodItem, selectedMealType, qtyFloat)
+                    }
+                },
+                enabled = quantity.toFloatOrNull() != null && (quantity.toFloatOrNull() ?: 0f) > 0,
+                colors = ButtonDefaults.buttonColors(containerColor = orangePrimary)
+            ) {
+                Text("Añadir")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss, colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor)) {
+                Text("Cancelar")
+            }
+        },
+        containerColor = cardColor
+    )
+}
