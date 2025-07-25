@@ -53,12 +53,12 @@ fun EditFoodScreen(
     var name by remember { mutableStateOf("") }
     var details by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
-    var protein by remember { mutableStateOf("") } // Nuevo campo: proteínas
+    var protein by remember { mutableStateOf("") }
     var fat by remember { mutableStateOf("") }
     var carbohydrates by remember { mutableStateOf("") }
 
-    var isLoadingInitialData by remember { mutableStateOf(true) } // Para la carga inicial del alimento
-    var errorMessageLocal by remember { mutableStateOf<String?>(null) } // Mensajes específicos de la UI
+    var isLoadingInitialData by remember { mutableStateOf(true) }
+    var errorMessageLocal by remember { mutableStateOf<String?>(null) }
     var successMessageLocal by remember { mutableStateOf<String?>(null) }
 
     val isViewModelLoading = foodViewModel.isLoading.collectAsState().value
@@ -66,19 +66,19 @@ fun EditFoodScreen(
 
     // Cargar datos del alimento
     LaunchedEffect(foodItemId) {
-        isLoadingInitialData = true // Indica que estamos cargando
+        isLoadingInitialData = true
         errorMessageLocal = null // Limpia cualquier mensaje de error anterior
-        foodViewModel.getFoodItemById(foodItemId)?.let { foodItem -> // Usar getFoodItemById
+        foodViewModel.getFoodItemById(foodItemId)?.let { foodItem ->
             name = foodItem.name
             details = foodItem.details
-            calories = foodItem.calories.toString() // Convertir Float a String
-            protein = foodItem.protein.toString()   // Convertir Float a String
-            fat = foodItem.fat.toString()           // Convertir Float a String
-            carbohydrates = foodItem.carbohydrates.toString() // Convertir Float a String
+            calories = foodItem.calories.toString()
+            protein = foodItem.protein.toString()
+            fat = foodItem.fat.toString()
+            carbohydrates = foodItem.carbohydrates.toString()
         } ?: run {
             errorMessageLocal = "No se pudo cargar el alimento. ID: $foodItemId"
         }
-        isLoadingInitialData = false // La carga inicial ha terminado
+        isLoadingInitialData = false
     }
 
     val isFormValid by remember {
@@ -87,7 +87,7 @@ fun EditFoodScreen(
                     calories.toFloatOrNull() != null && calories.toFloatOrNull()!! >= 0 &&
                     protein.toFloatOrNull() != null && protein.toFloatOrNull()!! >= 0 &&
                     fat.toFloatOrNull() != null && fat.toFloatOrNull()!! >= 0 &&
-                    carbohydrates.toFloatOrNull() != null && carbohydrates.toFloatOrNull()!! >= 0 // Validar carbohidratos
+                    carbohydrates.toFloatOrNull() != null && carbohydrates.toFloatOrNull()!! >= 0
         }
     }
 
@@ -129,10 +129,10 @@ fun EditFoodScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (isLoadingInitialData || isViewModelLoading) { // Mostrar spinner si se está cargando inicialmente o si el ViewModel está ocupado
+                if (isLoadingInitialData || isViewModelLoading) {
                     CircularProgressIndicator(color = orangePrimary)
                 } else {
-                    // Aquí va la Card decorativa
+                    // card decorativa
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -177,8 +177,8 @@ fun EditFoodScreen(
                         },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
-                        colors = TextFieldDefaults.colors( // USAR TextFieldDefaults.colors
-                            focusedContainerColor = cardColor, // Usar cardColor para fondo sólido
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = cardColor,
                             unfocusedContainerColor = cardColor,
                             focusedTextColor = textColor,
                             unfocusedTextColor = textColor,
@@ -211,7 +211,7 @@ fun EditFoodScreen(
                             )
                         },
                         shape = RoundedCornerShape(12.dp),
-                        colors = TextFieldDefaults.colors( // USAR TextFieldDefaults.colors
+                        colors = TextFieldDefaults.colors(
                             focusedContainerColor = cardColor,
                             unfocusedContainerColor = cardColor,
                             focusedTextColor = textColor,
@@ -244,7 +244,7 @@ fun EditFoodScreen(
                             .padding(bottom = 8.dp)
                     )
 
-                    // Campo Calorías
+                    //calorias
                     OutlinedTextField(
                         value = calories,
                         onValueChange = { newValue ->
@@ -255,15 +255,12 @@ fun EditFoodScreen(
                             Text(
                                 "🔥",
                                 modifier = Modifier.size(24.dp),
-                                // Aquí el color no es de un Text Composable directamente, es para el String emoji
-                                // Si quieres tintar el emoji, necesitas un font de iconos.
-                                // Por ahora, lo dejamos sin tint, o puedes usar un Icon(painterResource(...))
                             )
                         },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(12.dp),
-                        colors = TextFieldDefaults.colors( // USAR TextFieldDefaults.colors
+                        colors = TextFieldDefaults.colors(
                             focusedContainerColor = cardColor,
                             unfocusedContainerColor = cardColor,
                             focusedTextColor = textColor,
@@ -299,7 +296,7 @@ fun EditFoodScreen(
                         label = { Text("Proteínas (g)", color = textColor.copy(alpha = 0.7f)) },
                         leadingIcon = {
                             Text(
-                                "🥩", // Icono de proteínas
+                                "🥩",
                                 modifier = Modifier.size(24.dp),
                                 // color = orangePrimary // Esto es para el Composable Text, no para un String emoji directamente
                             )
@@ -343,7 +340,7 @@ fun EditFoodScreen(
                         label = { Text("Grasas (g)", color = textColor.copy(alpha = 0.7f)) },
                         leadingIcon = {
                             Text(
-                                "🥑", // Icono de grasas
+                                "🥑",
                                 modifier = Modifier.size(24.dp),
                                 // color = orangePrimary
                             )
@@ -351,7 +348,7 @@ fun EditFoodScreen(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(12.dp),
-                        colors = TextFieldDefaults.colors( // USAR TextFieldDefaults.colors
+                        colors = TextFieldDefaults.colors(
                             focusedContainerColor = cardColor,
                             unfocusedContainerColor = cardColor,
                             focusedTextColor = textColor,
@@ -378,7 +375,7 @@ fun EditFoodScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Campo Carbohidratos (NUEVO, añadirlo)
+                    // carbos
                     OutlinedTextField(
                         value = carbohydrates,
                         onValueChange = { newValue ->
@@ -387,7 +384,7 @@ fun EditFoodScreen(
                         label = { Text("Carbohidratos (g)", color = textColor.copy(alpha = 0.7f)) },
                         leadingIcon = {
                             Text(
-                                "🍚", // Icono de carbohidratos
+                                "🍚",
                                 modifier = Modifier.size(24.dp),
                                 // color = orangePrimary
                             )
@@ -395,7 +392,7 @@ fun EditFoodScreen(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(12.dp),
-                        colors = TextFieldDefaults.colors( // USAR TextFieldDefaults.colors
+                        colors = TextFieldDefaults.colors(
                             focusedContainerColor = cardColor,
                             unfocusedContainerColor = cardColor,
                             focusedTextColor = textColor,
@@ -420,7 +417,7 @@ fun EditFoodScreen(
                         }
                     )
 
-                    // Mensajes de error/success (combinados)
+                    // Mensajes de error y exito
                     if (errorMessageLocal != null) {
                         Row(
                             modifier = Modifier
@@ -493,28 +490,28 @@ fun EditFoodScreen(
                         onClick = {
                             if (isFormValid) {
                                 val updatedFood = FoodItem(
-                                    id = foodItemId, // Asegúrate de pasar el ID para la actualización
+                                    id = foodItemId,
                                     name = name,
                                     details = details,
-                                    calories = calories.toFloatOrNull() ?: 0f, // Convertir a Float
-                                    protein = protein.toFloatOrNull() ?: 0f,   // Convertir a Float
-                                    fat = fat.toFloatOrNull() ?: 0f,           // Convertir a Float
-                                    carbohydrates = carbohydrates.toFloatOrNull() ?: 0f // Convertir a Float
+                                    calories = calories.toFloatOrNull() ?: 0f,
+                                    protein = protein.toFloatOrNull() ?: 0f,
+                                    fat = fat.toFloatOrNull() ?: 0f,
+                                    carbohydrates = carbohydrates.toFloatOrNull() ?: 0f
                                 )
                                 foodViewModel.updateFoodItem( // Usar updateFoodItem
                                     updatedFood,
                                     onSuccess = {
-                                        successMessageLocal = "✅ Alimento actualizado exitosamente"
+                                        successMessageLocal = "Alimento actualizado exitosamente"
                                         errorMessageLocal = null
-                                        onFoodUpdated() // Llama al callback para que FoodScreen sepa que algo cambió
+                                        onFoodUpdated() // callbac de que la comida se actualizo
                                     },
                                     onFailure = { errorMsg ->
-                                        errorMessageLocal = "❌ Error al actualizar: $errorMsg"
+                                        errorMessageLocal = "Error al actualizar: $errorMsg"
                                         successMessageLocal = null
                                     }
                                 )
                             } else {
-                                errorMessageLocal = "⚠️ Completa todos los campos requeridos y asegúrate que los valores sean números válidos."
+                                errorMessageLocal = "⚠Completa todos los campos requeridos y asegúrate que los valores sean números válidos."
                                 successMessageLocal = null
                             }
                         },
@@ -522,7 +519,7 @@ fun EditFoodScreen(
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        enabled = !isViewModelLoading && !isLoadingInitialData, // Deshabilita el botón si el ViewModel está ocupado o si se está cargando la data inicial
+                        enabled = !isViewModelLoading && !isLoadingInitialData,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.Transparent
                         )
@@ -553,7 +550,7 @@ fun EditFoodScreen(
                             }
                         }
                     }
-                } // Fin del else (si no está cargando inicialmente)
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 

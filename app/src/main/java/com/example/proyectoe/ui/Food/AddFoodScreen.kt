@@ -59,11 +59,11 @@ fun AddFoodScreen(
             val food = foodViewModel.getFoodItemById(foodId)
             food?.let {
                 name = it.name
-                details = it.details // Si FoodItem tiene details
+                details = it.details
                 calories = it.calories.toString()
                 protein = it.protein.toString()
                 fat = it.fat.toString()
-                carbohydrates = it.carbohydrates.toString() // Cargar carbohidratos
+                carbohydrates = it.carbohydrates.toString()
             }
         }
     }
@@ -75,11 +75,11 @@ fun AddFoodScreen(
                     calories.toFloatOrNull() != null && calories.toFloatOrNull()!! >= 0 &&
                     protein.toFloatOrNull() != null && protein.toFloatOrNull()!! >= 0 &&
                     fat.toFloatOrNull() != null && fat.toFloatOrNull()!! >= 0 &&
-                    carbohydrates.toFloatOrNull() != null && carbohydrates.toFloatOrNull()!! >= 0 // Validar carbohidratos
+                    carbohydrates.toFloatOrNull() != null && carbohydrates.toFloatOrNull()!! >= 0
         }
     }
 
-    // Definición de colores según tu tema
+    // colores
     val darkBlueBlack = Color(0xFF0A0E21)
     val orangePrimary = Color(0xFFFF9800)
     val orangeSecondary = Color(0xFFFF5722)
@@ -175,7 +175,7 @@ fun AddFoodScreen(
                         cursorColor = orangePrimary,
                         focusedIndicatorColor = orangePrimary,
                         unfocusedIndicatorColor = Color(0xFF2A2A3C),
-                        // Añadir colores de selección
+                        //colores de selección
                         selectionColors = TextSelectionColors(
                             handleColor = orangePrimary,
                             backgroundColor = orangePrimary.copy(alpha = 0.4f)
@@ -404,40 +404,39 @@ fun AddFoodScreen(
                                 calories = calories.toFloatOrNull() ?: 0f,
                                 protein = protein.toFloatOrNull() ?: 0f,
                                 fat = fat.toFloatOrNull() ?: 0f,
-                                carbohydrates = carbohydrates.toFloatOrNull() ?: 0f // Guardar carbohidratos
+                                carbohydrates = carbohydrates.toFloatOrNull() ?: 0f
                             )
 
                             if (isEditing) {
                                 foodViewModel.updateFoodItem(
                                     alimento,
                                     onSuccess = {
-                                        localMessage = "✅ Alimento actualizado exitosamente"
-                                        // Puedes optar por limpiar campos o no al editar, o regresar
-                                        // onBack()
+                                        localMessage = "Alimento actualizado exitosamente"
+                                        onBack()
                                     },
                                     onFailure = { errorMsg ->
-                                        localMessage = "❌ Error al actualizar: $errorMsg"
+                                        localMessage = "Error al actualizar: $errorMsg"
                                     }
                                 )
                             } else {
                                 foodViewModel.addFood(
                                     alimento,
                                     onSuccess = {
-                                        localMessage = "✅ Alimento agregado exitosamente"
+                                        localMessage = "Alimento agregado exitosamente"
                                         name = ""
                                         details = ""
                                         calories = ""
                                         protein = ""
                                         fat = ""
-                                        carbohydrates = "" // Limpiar también carbohidratos
+                                        carbohydrates = ""
                                     },
                                     onFailure = { errorMsg ->
-                                        localMessage = "❌ Error al guardar: $errorMsg"
+                                        localMessage = "Error al guardar: $errorMsg"
                                     }
                                 )
                             }
                         } else {
-                            localMessage = "⚠️ Completa todos los campos requeridos y asegúrate que los valores sean números válidos."
+                            localMessage = "⚠Completa todos los campos requeridos y asegúrate que los valores sean números válidos."
                         }
                     },
                     modifier = Modifier

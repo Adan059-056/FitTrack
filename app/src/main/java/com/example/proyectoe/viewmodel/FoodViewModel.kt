@@ -15,20 +15,19 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// Nueva data class para el registro de consumo diario
 data class ConsumedFoodEntry(
-    val id: String = "", // ID del documento en Firestore para este consumo
-    val foodItemId: String = "", // ID del alimento del catálogo
-    val userId: String = "", // ID del usuario que lo consumió
-    val date: String = "", // Fecha de consumo (ej. "YYYY-MM-DD")
-    val mealType: String = "", // Tipo de comida (Desayuno, Almuerzo, Cena, Snacks)
-    val quantity: Float = 0f, // Cantidad consumida (ej. en gramos o porciones)
-    val name: String = "", // Nombre del alimento (duplicado para facilitar consultas)
-    val calories: Float = 0f, // Calorías calculadas para esta porción
+    val id: String = "",
+    val foodItemId: String = "",
+    val userId: String = "",
+    val date: String = "",
+    val mealType: String = "",
+    val quantity: Float = 0f,
+    val name: String = "",
+    val calories: Float = 0f,
     val protein: Float = 0f,
     val fat: Float = 0f,
     val carbohydrates: Float = 0f,
-    val timestamp: Long = System.currentTimeMillis() // Para ordenar
+    val timestamp: Long = System.currentTimeMillis()
 )
 
 
@@ -74,14 +73,14 @@ class FoodViewModel : ViewModel() {
                 } else {
                     allCatalogFoodItems.filter {
                         it.name.contains(query, ignoreCase = true) ||
-                                it.details.contains(query, ignoreCase = true) // Asegúrate que 'details' existe en FoodItem.kt
+                                it.details.contains(query, ignoreCase = true)
                     }
                 }
             }
         }
     }
 
-    // --- Métodos para el catálogo global de alimentos ---
+    // metodos
 
     fun fetchFoodItemsCatalog() {
         _isLoading.value = true
@@ -93,7 +92,7 @@ class FoodViewModel : ViewModel() {
                     doc.toObject(FoodItem::class.java)?.copy(id = doc.id)
                 }
                 _isLoading.value = false
-                // Actualizar los resultados de búsqueda si ya hay una query
+                // Actualiza los resultados de búsqueda si ya hay una query
                 onSearchQueryChanged(_searchQuery.value)
             } catch (e: Exception) {
                 _errorMessage.value = "Error al cargar catálogo de alimentos: ${e.message}"
@@ -112,13 +111,13 @@ class FoodViewModel : ViewModel() {
                 val addedFoodItemWithId = foodItem.copy(id = newDocRef.id)
                 allCatalogFoodItems = allCatalogFoodItems + addedFoodItemWithId
                 _isLoading.value = false
-                onSuccess() // Llama al callback de éxito
+                onSuccess()
                 onSearchQueryChanged(_searchQuery.value)
             } catch (e: Exception) {
                 val errorMsg = "Error al agregar alimento al catálogo: ${e.message}"
                 _errorMessage.value = errorMsg
                 _isLoading.value = false
-                onFailure(errorMsg) // Llama al callback de fallo
+                onFailure(errorMsg)
                 Log.e("FoodViewModel", "Error adding food item to catalog", e)
             }
         }
@@ -141,19 +140,19 @@ class FoodViewModel : ViewModel() {
                     if (it.id == foodItem.id) foodItem else it
                 }
                 _isLoading.value = false
-                onSuccess() // Llama al callback de éxito
+                onSuccess()
                 onSearchQueryChanged(_searchQuery.value)
             } catch (e: Exception) {
                 val errorMsg = "Error al actualizar alimento del catálogo: ${e.message}"
                 _errorMessage.value = errorMsg
                 _isLoading.value = false
-                onFailure(errorMsg) // Llama al callback de fallo
-                Log.e("FoodViewModel", "Error updating food item in catalog", e)
+                onFailure(errorMsg)
+                Log.e("FoodViewModel", "Error al actualizar el alimento en el catalogo", e)
             }
         }
     }
 
-    // --- Métodos para el registro de consumo diario por usuario ---
+    //metodos para el registro de consumo diario por usuario
 
     suspend fun getFoodItemById(foodId: String): FoodItem? {
         return try {
@@ -161,7 +160,7 @@ class FoodViewModel : ViewModel() {
             doc.toObject(FoodItem::class.java)?.copy(id = doc.id)
         } catch (e: Exception) {
             _errorMessage.value = "Error al obtener alimento por ID: ${e.message}"
-            Log.e("FoodViewModel", "Error getting food item by ID: $foodId", e)
+            Log.e("FoodViewModel", "Error al obtener alimento por ID: $foodId", e)
             null
         }
     }
@@ -214,10 +213,10 @@ class FoodViewModel : ViewModel() {
             mealType = mealType,
             quantity = quantity,
             name = foodItem.name,
-            calories = foodItem.calories * quantity, // Ya son Float
-            protein = foodItem.protein * quantity,   // Ya son Float
-            fat = foodItem.fat * quantity,          // Ya son Float
-            carbohydrates = foodItem.carbohydrates * quantity // Ya son Float
+            calories = foodItem.calories * quantity,
+            protein = foodItem.protein * quantity,
+            fat = foodItem.fat * quantity,
+            carbohydrates = foodItem.carbohydrates * quantity
         )
 
         _isLoading.value = true
@@ -246,12 +245,12 @@ class FoodViewModel : ViewModel() {
         }
     }
 
-    // Método para actualizar la búsqueda
+    // metodo para actualizar la búsqueda
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
     }
 
-    // Calcular totales diarios
+    // para calcular los numeros totales diarios
     private fun calculateDailyTotals(entries: List<ConsumedFoodEntry>) {
         var totalCalories = 0f
         var totalProtein = 0f
@@ -273,14 +272,12 @@ class FoodViewModel : ViewModel() {
         )
     }
 
-    // Helper para obtener la fecha actual en formato YYYY-MM-DD
     private fun getCurrentDate(): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         return sdf.format(Date())
     }
 }
 
-// Data class para los totales diarios
 data class DailyTotals(
     val totalCalories: Float = 0f,
     val totalProtein: Float = 0f,

@@ -1,4 +1,3 @@
-// app/src/main/java/com/example/proyectoe/ui/Food/FoodScreen.kt
 package com.example.proyectoe.ui.Food
 
 import androidx.compose.foundation.BorderStroke
@@ -14,7 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.* // Asegúrate de que esta importación sea correcta para Material3
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -25,16 +24,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.foundation.text.KeyboardOptions // Importación necesaria
-import androidx.compose.ui.text.input.KeyboardType // Importación necesaria
-import androidx.compose.material3.LocalTextStyle // Importación necesaria para textStyle
-import androidx.compose.ui.graphics.SolidColor // Necesario para cursorBrush con un solo color
-import androidx.compose.foundation.text.selection.TextSelectionColors
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+
 
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.proyectoe.database.FoodItem // Importa tu FoodItem
+import com.example.proyectoe.database.FoodItem
 
-// Definición de colores para el tema oscuro (los de tu original)
+// colres
 val darkBlueBlack = Color(0xFF0A0E21)
 val orangePrimary = Color(0xFFFF9800)
 val orangeSecondary = Color(0xFFFF5722)
@@ -122,7 +119,7 @@ fun FoodScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // --- Buscador de Alimentos del Catálogo ---
+            // buscador de alimentos en el catalogo
             item {
                 OutlinedTextField(
                     value = searchQuery,
@@ -134,14 +131,13 @@ fun FoodScreen(
 //                    colors = TextFieldDefaults.colors(
 //                        focusedTextColor = textColor,
 //                        unfocusedTextColor = textColor,
-//                        focusedContainerColor = Color.Transparent, // Fondo transparente
-//                        unfocusedContainerColor = Color.Transparent, // Fondo transparente
+//                        focusedContainerColor = Color.Transparent,
+//                        unfocusedContainerColor = Color.Transparent,
 //                        focusedBorderColor = orangePrimary,
 //                        unfocusedBorderColor = textColor.copy(alpha = 0.3f),
 //                        cursorColor = orangePrimary,
-//                        focusedLabelColor = orangePrimary, // Color del label cuando está enfocado
-//                        unfocusedLabelColor = textColor.copy(alpha = 0.7f) // Color del label cuando no está enfocado
-//                        // Puedes añadir más colores aquí si es necesario para tu tema
+//                        focusedLabelColor = orangePrimary,
+//                        unfocusedLabelColor = textColor.copy(alpha = 0.7f)
 //                    ),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -204,15 +200,11 @@ fun FoodScreen(
                 foodViewModel.addConsumedFoodEntry(food, mealType, quantity) { success ->
                     showAddFoodToMealDialog = false
                     selectedFoodItemForMeal = null
-                    // Aquí puedes mostrar un Toast o SnackBar según el 'success'
                 }
             }
         )
     }
 }
-
-// Resto de tus Composable (CalorieSummaryCard, NutrientCircle, MacronutrientsCard, MacronutrientRow, Nutrient)
-// ... se mantienen como te los pasé, ya que esos no estaban causando problemas.
 
 @Composable
 fun CalorieSummaryCard(totalCalories: Int) {
@@ -606,19 +598,18 @@ fun AddFoodToMealDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
 //                    colors = TextFieldDefaults.colors(
-//                        focusedTextColor = textColor, // Tu color de texto cuando enfocado
-//                        unfocusedTextColor = textColor, // Tu color de texto cuando no enfocado
-//                        focusedContainerColor = Color.Transparent, // Fondo transparente
-//                        unfocusedContainerColor = Color.Transparent, // Fondo transparente
-//                        focusedBorderColor = orangePrimary, // Color del borde cuando enfocado
-//                        unfocusedBorderColor = textColor.copy(alpha = 0.3f), // Color del borde cuando no enfocado
-//                        cursorColor = orangePrimary, // Color del cursor
-//                        focusedLabelColor = orangePrimary, // Color del label cuando enfocado
-//                        unfocusedLabelColor = textColor.copy(alpha = 0.7f), // Color del label cuando no enfocado
-//                        // Puedes añadir más colores aquí si es necesario para tu tema
+//                        focusedTextColor = textColor,
+//                        unfocusedTextColor = textColor,
+//                        focusedContainerColor = Color.Transparent,
+//                        unfocusedContainerColor = Color.Transparent,
+//                        focusedBorderColor = orangePrimary,
+//                        unfocusedBorderColor = textColor.copy(alpha = 0.3f),
+//                        cursorColor = orangePrimary,
+//                        focusedLabelColor = orangePrimary,
+//                        unfocusedLabelColor = textColor.copy(alpha = 0.7f),
 //                        selectionColors = TextSelectionColors(
-//                            handleColor = orangePrimary, // Color de las 'handles' de selección
-//                            backgroundColor = orangePrimary.copy(alpha = 0.4f) // Color de fondo del texto seleccionado
+//                            handleColor = orangePrimary,
+//                            backgroundColor = orangePrimary.copy(alpha = 0.4f)
 //                        )
 //                    ),
                     shape = RoundedCornerShape(12.dp)

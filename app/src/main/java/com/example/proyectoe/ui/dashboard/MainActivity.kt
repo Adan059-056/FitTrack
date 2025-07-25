@@ -80,7 +80,7 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = startDestination, // Use dynamic start destination
+                        startDestination = startDestination,
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable("start") {
@@ -163,12 +163,12 @@ class MainActivity : ComponentActivity() {
                                     foodItemId = foodId,
                                     onBack = { navController.popBackStack() },
                                     onFoodUpdated = {
-                                        // Después de actualizar, puedes volver a la pantalla de alimentos
+                                        // Después de actualizarpara volver a la pantalla de alimentos
                                         navController.popBackStack()
                                     }
                                 )
                             } else {
-                                // Manejar el caso de ID nulo, quizás mostrar un Toast o un log
+                                // Manejar el caso de ID nulo
                                 Toast.makeText(this@MainActivity, "Error: ID de alimento no proporcionado", Toast.LENGTH_SHORT).show()
                                 navController.popBackStack() // Regresar para evitar un estado roto
                             }
