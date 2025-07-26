@@ -208,7 +208,7 @@ class MainActivity : ComponentActivity() {
         val dueDate = Calendar.getInstance()
 
         // Establecer la hora a las 11:00 PM
-        dueDate.set(Calendar.HOUR_OF_DAY, 9)
+        dueDate.set(Calendar.HOUR_OF_DAY, 23)
         dueDate.set(Calendar.MINUTE, 0)
         dueDate.set(Calendar.SECOND, 0)
 
