@@ -1,42 +1,41 @@
 package com.example.proyectoe.database
 
 import android.content.Context
-import androidx.work.CoroutineWorker
+import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FieldValue
-import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.*
 
-class GuardarPasosWorker(
-    appContext: Context,
-    workerParams: WorkerParameters
-) : CoroutineWorker(appContext, workerParams) {
+class UploadStepsWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
-    override suspend fun doWork(): Result {
-        val auth = FirebaseAuth.getInstance()
-        val firestore = FirebaseFirestore.getInstance()
-        val uid = auth.currentUser?.uid ?: return Result.failure()
+    override fun doWork(): Result {
+        val prefs = applicationContext.getSharedPreferences("step_prefs", Context.MODE_PRIVATE)
+        val steps = prefs.getFloat("daily_steps", 0f).toInt()
 
-        val sharedPrefs = applicationContext.getSharedPreferences("step_counter_prefs", Context.MODE_PRIVATE)
-        val pasos = sharedPrefs.getFloat("steps_accumulated_today", 0f)
-        val fecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-
-        val datos = hashMapOf(
-            "uid" to uid,
-            "steps" to pasos,
-            "date" to fecha,
-            "timestamp" to FieldValue.serverTimestamp()
-        )
-
-        return try {
-            // Puedes cambiar esta colección si quieres hacerlo por usuario
-            firestore.collection("daily_steps").add(datos).await()
-            Result.success()
-        } catch (e: Exception) {
-            Result.failure()
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            println("No se pudo guardar: usuario no autenticado")
+            return Result.failure()
         }
+
+        val firestore = FirebaseFirestore.getInstance()
+        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val data = hashMapOf("fecha" to date, "pasos" to steps)
+
+        firestore.collection("users")
+            .document(user.uid)
+            .collection("steps")
+            .document(date)
+            .set(data)
+            .addOnSuccessListener {
+                println("Pasos diarios guardados correctamente")
+            }
+            .addOnFailureListener {
+                println("Error al guardar pasos: ${it.message}")
+            }
+
+        return Result.success()
     }
 }

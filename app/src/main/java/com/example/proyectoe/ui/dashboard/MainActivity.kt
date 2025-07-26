@@ -27,13 +27,15 @@ import com.example.proyectoe.ui.auth.SignInScreen
 import com.example.proyectoe.ui.dashboard.components.MainBottonBar
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
-import androidx.work.*
-import java.util.concurrent.TimeUnit
-import java.util.*
-import com.example.proyectoe.database.GuardarPasosWorker
 import com.example.proyectoe.ui.Food.EditFoodScreen
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.proyectoe.database.UploadStepsWorker
+import java.util.Calendar
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
 
@@ -52,7 +54,7 @@ class MainActivity : ComponentActivity() {
 
         FirebaseApp.initializeApp(this)
         checkAndRequestActivityRecognitionPermission()
-
+        scheduleStepUploadWorker(this)
         setContent {
             val navController = rememberNavController()
             val auth = FirebaseAuth.getInstance()
@@ -202,31 +204,31 @@ class MainActivity : ComponentActivity() {
         }
     }
     fun scheduleStepUploadWorker(context: Context) {
-        val delay = calculateDelayTo11PM()
+        val currentDate = Calendar.getInstance()
+        val dueDate = Calendar.getInstance()
 
-        val workRequest = PeriodicWorkRequestBuilder<GuardarPasosWorker>(24, TimeUnit.HOURS)
-            .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+        // Establecer la hora a las 11:00 PM
+        dueDate.set(Calendar.HOUR_OF_DAY, 9)
+        dueDate.set(Calendar.MINUTE, 0)
+        dueDate.set(Calendar.SECOND, 0)
+
+        // Calcular el tiempo de espera inicial
+        if (dueDate.before(currentDate)) {
+            dueDate.add(Calendar.HOUR_OF_DAY, 24)
+        }
+
+        val timeDiff = dueDate.timeInMillis - currentDate.timeInMillis
+
+        val dailyWorkRequest = PeriodicWorkRequestBuilder<UploadStepsWorker>(1, TimeUnit.DAYS)
+            .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            "subir_pasos_diarios",
-            ExistingPeriodicWorkPolicy.UPDATE,
-            workRequest
+            "daily_step_upload",
+            ExistingPeriodicWorkPolicy.REPLACE,
+            dailyWorkRequest
         )
     }
-
-    fun calculateDelayTo11PM(): Long {
-        val now = Calendar.getInstance()
-        val target = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 20)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-            if (before(now)) add(Calendar.DAY_OF_YEAR, 1)
-        }
-        return target.timeInMillis - now.timeInMillis
-    }
-
     private fun checkAndRequestActivityRecognitionPermission() {
         when {
             ContextCompat.checkSelfPermission(
