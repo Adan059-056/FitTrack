@@ -68,9 +68,10 @@ class MainActivity : ComponentActivity() {
             val currentRoute = navBackStackEntry?.destination?.route
 
             // Hide bottom bar for specific routes
-            val showBottomBar = currentRoute !in listOf("start", "singin_route", "register_route", "add_food_route")
+            val showBottomBar =
+                currentRoute !in listOf("start", "singin_route", "register_route", "add_food_route")
 
-            MaterialTheme  {
+            MaterialTheme {
                 Scaffold(
                     containerColor = Color(0xFF101322),
                     bottomBar = {
@@ -89,7 +90,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable("start") {
                             StartScreen(
-                                        onUserLoggedIn = {
+                                onUserLoggedIn = {
                                     navController.navigate("home") {
                                         popUpTo("start") { inclusive = true }
                                         launchSingleTop = true
@@ -159,7 +160,9 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(
                             route = "edit_food_route/{foodId}", // Define la ruta con el argumento
-                            arguments = listOf(navArgument("foodId") { type = NavType.StringType }) // Especifica el tipo
+                            arguments = listOf(navArgument("foodId") {
+                                type = NavType.StringType
+                            }) // Especifica el tipo
                         ) { backStackEntry ->
                             val foodId = backStackEntry.arguments?.getString("foodId")
                             if (foodId != null) {
@@ -173,7 +176,11 @@ class MainActivity : ComponentActivity() {
                                 )
                             } else {
                                 // Manejar el caso de ID nulo
-                                Toast.makeText(this@MainActivity, "Error: ID de alimento no proporcionado", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    "Error: ID de alimento no proporcionado",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 navController.popBackStack() // Regresar para evitar un estado roto
                             }
                         }
@@ -194,25 +201,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    private fun checkAndRequestActivityRecognitionPermission() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACTIVITY_RECOGNITION
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                println("Permiso ACTIVITY_RECOGNITION ya concedido.")
-            }
-            shouldShowRequestPermissionRationale(Manifest.permission.ACTIVITY_RECOGNITION) -> {
-                println("Necesitamos el permiso de reconocimiento de actividad para contar tus pasos. Por favor, concédelo.")
-                requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
-            }
-            else -> {
-                requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
-            }
-        }
-    }
-
     fun scheduleStepUploadWorker(context: Context) {
         val delay = calculateDelayTo11PM()
 
@@ -230,7 +218,7 @@ class MainActivity : ComponentActivity() {
     fun calculateDelayTo11PM(): Long {
         val now = Calendar.getInstance()
         val target = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 19)
+            set(Calendar.HOUR_OF_DAY, 20)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
@@ -238,4 +226,25 @@ class MainActivity : ComponentActivity() {
         }
         return target.timeInMillis - now.timeInMillis
     }
+
+    private fun checkAndRequestActivityRecognitionPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                println("Permiso ACTIVITY_RECOGNITION ya concedido.")
+            }
+
+            shouldShowRequestPermissionRationale(Manifest.permission.ACTIVITY_RECOGNITION) -> {
+                println("Necesitamos el permiso de reconocimiento de actividad para contar tus pasos. Por favor, concédelo.")
+                requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+            }
+
+            else -> {
+                requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+            }
+        }
+    }
+
 }
