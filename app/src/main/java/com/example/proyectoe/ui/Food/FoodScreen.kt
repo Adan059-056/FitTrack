@@ -57,6 +57,10 @@ fun FoodScreen(
     var showAddFoodToMealDialog by remember { mutableStateOf(false) }
     var selectedFoodItemForMeal by remember { mutableStateOf<FoodItem?>(null) }
 
+    LaunchedEffect(Unit) {
+        foodViewModel.fetchFoodItemsCatalog()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
