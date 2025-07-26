@@ -1,6 +1,7 @@
 package com.example.proyectoe.ui.dashboard
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -47,12 +48,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @SuppressLint("MissingSuperCall")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         FirebaseApp.initializeApp(this)
         checkAndRequestActivityRecognitionPermission()
-
+        super.onCreate(savedInstanceState)
+        scheduleStepUploadWorker(this)
         setContent {
             val navController = rememberNavController()
             val auth = FirebaseAuth.getInstance()
@@ -218,7 +221,7 @@ class MainActivity : ComponentActivity() {
     fun calculateDelayTo11PM(): Long {
         val now = Calendar.getInstance()
         val target = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 20)
+            set(Calendar.HOUR_OF_DAY, 9)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)

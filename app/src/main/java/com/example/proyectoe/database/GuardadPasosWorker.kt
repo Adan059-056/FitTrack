@@ -18,21 +18,20 @@ class GuardarPasosWorker(
     override suspend fun doWork(): Result {
         val auth = FirebaseAuth.getInstance()
         val firestore = FirebaseFirestore.getInstance()
-        val uid = auth.currentUser?.uid ?: return Result.failure()
+        val userId = auth.currentUser?.uid ?: return Result.failure()
 
         val sharedPrefs = applicationContext.getSharedPreferences("step_counter_prefs", Context.MODE_PRIVATE)
         val pasos = sharedPrefs.getFloat("steps_accumulated_today", 0f)
         val fecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
         val datos = hashMapOf(
-            "uid" to uid,
+            "userId" to userId,
             "steps" to pasos,
             "date" to fecha,
             "timestamp" to FieldValue.serverTimestamp()
         )
 
         return try {
-            // Puedes cambiar esta colección si quieres hacerlo por usuario
             firestore.collection("daily_steps").add(datos).await()
             Result.success()
         } catch (e: Exception) {

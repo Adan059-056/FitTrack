@@ -126,4 +126,6 @@ class ManejoContadorPasos(context: Context) : SensorEventListener {
         onStepCountChanged?.invoke(0f)
         println("ManejoContadorPasos: Conteo diario reiniciado manualmente.")
     }
+
+
 }
