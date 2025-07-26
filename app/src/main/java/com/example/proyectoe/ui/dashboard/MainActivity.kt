@@ -1,6 +1,7 @@
 package com.example.proyectoe.ui.dashboard
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -26,7 +27,10 @@ import com.example.proyectoe.ui.auth.SignInScreen
 import com.example.proyectoe.ui.dashboard.components.MainBottonBar
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
-
+import androidx.work.*
+import java.util.concurrent.TimeUnit
+import java.util.*
+import com.example.proyectoe.database.GuardarPasosWorker
 import com.example.proyectoe.ui.Food.EditFoodScreen
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
@@ -207,5 +211,31 @@ class MainActivity : ComponentActivity() {
                 requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
             }
         }
+    }
+
+    fun scheduleStepUploadWorker(context: Context) {
+        val delay = calculateDelayTo11PM()
+
+        val workRequest = PeriodicWorkRequestBuilder<GuardarPasosWorker>(24, TimeUnit.HOURS)
+            .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            "subir_pasos_diarios",
+            ExistingPeriodicWorkPolicy.UPDATE,
+            workRequest
+        )
+    }
+
+    fun calculateDelayTo11PM(): Long {
+        val now = Calendar.getInstance()
+        val target = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 19)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            if (before(now)) add(Calendar.DAY_OF_YEAR, 1)
+        }
+        return target.timeInMillis - now.timeInMillis
     }
 }

@@ -108,4 +108,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-test-manifest")
     implementation ("com.google.firebase:firebase-auth-ktx:23.0.0")
     implementation ("com.google.firebase:firebase-core:21.1.1")
+    implementation ("androidx.work:work-runtime-ktx:2.8.1")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1")
 }
