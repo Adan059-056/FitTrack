@@ -9,14 +9,16 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
 data class ConsumedFoodEntry(
-    val id: String = "",
+    var id: String = "",
     val foodItemId: String = "",
     val userId: String = "",
     val date: String = "",
@@ -35,7 +37,7 @@ class FoodViewModel : ViewModel() {
 
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
-    // private val _foodItems = MutableStateFlow<List<FoodItem>>(emptyList()) // No necesitamos exponer esto directamente
+    private val currentUserId: String? get() = auth.currentUser?.uid
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -55,49 +57,44 @@ class FoodViewModel : ViewModel() {
     private val _dailyTotals = MutableStateFlow(DailyTotals())
     val dailyTotals: StateFlow<DailyTotals> = _dailyTotals.asStateFlow()
 
-    private var allCatalogFoodItems: List<FoodItem> = emptyList()
+    private val _allCatalogFoodItems = MutableStateFlow<List<FoodItem>>(emptyList())
+    private val _currentDay = MutableStateFlow(getCurrentDate())
 
     init {
+        Log.d("FoodViewModelLifecycle", "FoodViewModel init called.")
         fetchFoodItemsCatalog()
-        auth.currentUser?.uid?.let { userId ->
-            fetchConsumedFoodEntries(userId, getCurrentDate())
-        } ?: run {
-            _errorMessage.value = "Usuario no autenticado."
-            Log.e("FoodViewModel", "Usuario no autenticado al iniciar ViewModel.")
-        }
+        observeSearchAndCatalogChanges()
+        startListeningForConsumedFoodEntries()
 
         viewModelScope.launch {
-            searchQuery.collect { query ->
-                _searchResults.value = if (query.isBlank()) {
-                    emptyList()
-                } else {
-                    allCatalogFoodItems.filter {
-                        it.name.contains(query, ignoreCase = true) ||
-                                it.details.contains(query, ignoreCase = true)
-                    }
+            _currentDay.collect { date ->
+                if (getCurrentDate() != date) {
+                    Log.d("FoodViewModel", "Date changed. Fetching new day's consumed entries.")
+                    _searchQuery.value = ""
+                    fetchConsumedFoodEntries(getCurrentDate())
                 }
             }
         }
     }
 
-    // metodos
-
+    // Métodos del catálogo
     fun fetchFoodItemsCatalog() {
         _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
+            Log.d("FoodViewModelFetch", "fetchFoodItemsCatalog started.")
             try {
                 val snapshot = firestore.collection("foodItems").get().await()
-                allCatalogFoodItems = snapshot.documents.mapNotNull { doc ->
+                val items = snapshot.documents.mapNotNull { doc ->
                     doc.toObject(FoodItem::class.java)?.copy(id = doc.id)
                 }
+                _allCatalogFoodItems.value = items
                 _isLoading.value = false
-                // Actualiza los resultados de búsqueda si ya hay una query
-                onSearchQueryChanged(_searchQuery.value)
+                Log.d("FoodViewModelFetch", "Food items catalog fetched. Count: ${items.size}. First item (if any): ${items.firstOrNull()?.name}")
             } catch (e: Exception) {
                 _errorMessage.value = "Error al cargar catálogo de alimentos: ${e.message}"
                 _isLoading.value = false
-                Log.e("FoodViewModel", "Error fetching food catalog items", e)
+                Log.e("FoodViewModelFetch", "Error fetching food catalog items", e)
             }
         }
     }
@@ -106,19 +103,28 @@ class FoodViewModel : ViewModel() {
         _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
+            Log.d("FoodViewModelAddCatalog", "addFood called for: ${foodItem.name}")
             try {
-                val newDocRef = firestore.collection("foodItems").add(foodItem).await()
-                val addedFoodItemWithId = foodItem.copy(id = newDocRef.id)
-                allCatalogFoodItems = allCatalogFoodItems + addedFoodItemWithId
+                val docRef = if (foodItem.id.isBlank()) {
+                    firestore.collection("foodItems").document()
+                } else {
+                    firestore.collection("foodItems").document(foodItem.id)
+                }
+                val foodToSave = foodItem.copy(id = docRef.id)
+
+                docRef.set(foodToSave).await()
+                Log.d("FoodViewModelAddCatalog", "Food saved to Firestore: ${foodToSave.name} with ID: ${foodToSave.id}")
+
+                fetchFoodItemsCatalog()
                 _isLoading.value = false
                 onSuccess()
-                onSearchQueryChanged(_searchQuery.value)
+                Log.d("FoodViewModelAddCatalog", "addFood completed successfully. onSuccess called.")
             } catch (e: Exception) {
                 val errorMsg = "Error al agregar alimento al catálogo: ${e.message}"
                 _errorMessage.value = errorMsg
                 _isLoading.value = false
                 onFailure(errorMsg)
-                Log.e("FoodViewModel", "Error adding food item to catalog", e)
+                Log.e("FoodViewModelAddCatalog", "Error adding food item to catalog", e)
             }
         }
     }
@@ -127,6 +133,7 @@ class FoodViewModel : ViewModel() {
         _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
+            Log.d("FoodViewModelUpdateCatalog", "updateFoodItem called for: ${foodItem.name}")
             try {
                 if (foodItem.id.isBlank()) {
                     val errorMsg = "ID de alimento no válido para actualizar."
@@ -136,61 +143,81 @@ class FoodViewModel : ViewModel() {
                     return@launch
                 }
                 firestore.collection("foodItems").document(foodItem.id).set(foodItem).await()
-                allCatalogFoodItems = allCatalogFoodItems.map {
-                    if (it.id == foodItem.id) foodItem else it
-                }
+                Log.d("FoodViewModelUpdateCatalog", "Food updated in Firestore: ${foodItem.name} with ID: ${foodItem.id}")
+                fetchFoodItemsCatalog()
                 _isLoading.value = false
                 onSuccess()
-                onSearchQueryChanged(_searchQuery.value)
+                Log.d("FoodViewModelUpdateCatalog", "updateFoodItem completed successfully. onSuccess called.")
             } catch (e: Exception) {
                 val errorMsg = "Error al actualizar alimento del catálogo: ${e.message}"
                 _errorMessage.value = errorMsg
                 _isLoading.value = false
                 onFailure(errorMsg)
-                Log.e("FoodViewModel", "Error al actualizar el alimento en el catalogo", e)
+                Log.e("FoodViewModelUpdateCatalog", "Error updating food item in catalog", e)
             }
         }
     }
-
-    //metodos para el registro de consumo diario por usuario
 
     suspend fun getFoodItemById(foodId: String): FoodItem? {
-        return try {
-            val doc = firestore.collection("foodItems").document(foodId).get().await()
-            doc.toObject(FoodItem::class.java)?.copy(id = doc.id)
-        } catch (e: Exception) {
-            _errorMessage.value = "Error al obtener alimento por ID: ${e.message}"
-            Log.e("FoodViewModel", "Error al obtener alimento por ID: $foodId", e)
-            null
-        }
+        return _allCatalogFoodItems.value.firstOrNull { it.id == foodId }
     }
 
-    fun fetchConsumedFoodEntries(userId: String, date: String) {
-        _isLoading.value = true
-        _errorMessage.value = null
-        viewModelScope.launch {
-            try {
-                val snapshot = firestore.collection("users")
-                    .document(userId)
-                    .collection("daily_consumptions")
-                    .document(date)
-                    .collection("meals")
-                    .get()
-                    .await()
+    // metodos para mandar el consumo a firebase
+    private var consumedEntriesListener: com.google.firebase.firestore.ListenerRegistration? = null
 
-                val entries = snapshot.documents.mapNotNull { doc ->
-                    doc.toObject(ConsumedFoodEntry::class.java)?.copy(id = doc.id)
+    private fun startListeningForConsumedFoodEntries() {
+        val userId = currentUserId
+        val date = _currentDay.value
+
+        if (userId == null) {
+            _errorMessage.value = "Usuario no autenticado para cargar consumos."
+            return
+        }
+
+        consumedEntriesListener?.remove()
+        Log.d("FoodViewModelListen", "Starting listener for consumed food entries for user: $userId, date: $date")
+
+        val docRef = firestore.collection("data_nutricional").document(userId)
+            .collection("consumos_diarios").document(date)
+            .collection("comidas_registradas")
+
+        consumedEntriesListener = docRef
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    _errorMessage.value = "Error al escuchar consumos diarios: ${e.message}"
+                    Log.e("FoodViewModelListen", "Error listening for daily consumptions", e)
+                    return@addSnapshotListener
                 }
-                _consumedFoodEntries.value = entries
-                calculateDailyTotals(entries)
-                _isLoading.value = false
-            } catch (e: Exception) {
-                _errorMessage.value = "Error al cargar consumos diarios: ${e.message}"
-                _isLoading.value = false
-                Log.e("FoodViewModel", "Error fetching daily consumptions for user $userId on $date", e)
+
+                if (snapshot != null && !snapshot.isEmpty) {
+                    val entries = snapshot.documents.mapNotNull { doc ->
+                        doc.toObject(ConsumedFoodEntry::class.java)?.copy(id = doc.id)
+                    }
+                    _consumedFoodEntries.value = entries
+                    calculateDailyTotals(entries)
+                    Log.d("FoodViewModelListen", "Consumed food entries updated (from Firebase): ${entries.size} items.")
+                } else {
+                    _consumedFoodEntries.value = emptyList()
+                    calculateDailyTotals(emptyList())
+                    Log.d("FoodViewModelListen", "No consumed food entries found for $date, or snapshot is empty.")
+                }
             }
-        }
     }
+
+    fun fetchConsumedFoodEntries(date: String) {
+        val userId = currentUserId
+        if (userId == null) {
+            _errorMessage.value = "Usuario no autenticado para cargar consumos."
+            return
+        }
+        consumedEntriesListener?.remove()
+        Log.d("FoodViewModelFetchConsumed", "Fetching consumed food entries for user: $userId, date: $date (one-time fetch or new listener)")
+
+        _currentDay.value = date
+        startListeningForConsumedFoodEntries()
+    }
+
 
     fun addConsumedFoodEntry(
         foodItem: FoodItem,
@@ -198,59 +225,92 @@ class FoodViewModel : ViewModel() {
         quantity: Float,
         onComplete: (Boolean) -> Unit
     ) {
-        val userId = auth.currentUser?.uid
+        _isLoading.value = true
+        _errorMessage.value = null
+        val userId = currentUserId
+        val currentDate = _currentDay.value
+
         if (userId == null) {
-            _errorMessage.value = "Usuario no autenticado para registrar consumo."
+            _errorMessage.value = "Usuario no autenticado."
             onComplete(false)
+            _isLoading.value = false
             return
         }
 
-        val currentDate = getCurrentDate()
-        val entry = ConsumedFoodEntry(
-            foodItemId = foodItem.id,
-            userId = userId,
-            date = currentDate,
-            mealType = mealType,
-            quantity = quantity,
-            name = foodItem.name,
-            calories = foodItem.calories * quantity,
-            protein = foodItem.protein * quantity,
-            fat = foodItem.fat * quantity,
-            carbohydrates = foodItem.carbohydrates * quantity
-        )
-
-        _isLoading.value = true
-        _errorMessage.value = null
         viewModelScope.launch {
             try {
-                val docRef = firestore.collection("users")
-                    .document(userId)
-                    .collection("daily_consumptions")
-                    .document(currentDate)
-                    .collection("meals")
-                    .add(entry)
-                    .await()
+                val entryId = UUID.randomUUID().toString()
+                val entry = ConsumedFoodEntry(
+                    id = entryId,
+                    foodItemId = foodItem.id,
+                    userId = userId,
+                    date = currentDate,
+                    mealType = mealType,
+                    quantity = quantity,
+                    name = foodItem.name,
+                    calories = foodItem.calories * quantity,
+                    protein = foodItem.protein * quantity,
+                    fat = foodItem.fat * quantity,
+                    carbohydrates = foodItem.carbohydrates * quantity,
+                    timestamp = System.currentTimeMillis()
+                )
 
-                val addedEntryWithId = entry.copy(id = docRef.id)
-                _consumedFoodEntries.value = _consumedFoodEntries.value + addedEntryWithId
-                calculateDailyTotals(_consumedFoodEntries.value)
+                firestore.collection("data_nutricional").document(userId)
+                    .collection("consumos_diarios").document(currentDate)
+                    .collection("comidas_registradas").document(entryId)
+                    .set(entry).await()
+
+                Log.d("FoodViewModelAddConsumed", "Consumed food entry added to Firestore: ${entry.name} on $currentDate")
                 _isLoading.value = false
                 onComplete(true)
             } catch (e: Exception) {
-                _errorMessage.value = "Error al registrar consumo: ${e.message}"
+                val errorMsg = "Error al agregar consumo: ${e.message}"
+                _errorMessage.value = errorMsg
+                Log.e("FoodViewModelAddConsumed", "Error adding consumed food entry to Firestore", e)
                 _isLoading.value = false
                 onComplete(false)
-                Log.e("FoodViewModel", "Error adding consumed food entry", e)
             }
         }
     }
 
-    // metodo para actualizar la búsqueda
-    fun onSearchQueryChanged(query: String) {
-        _searchQuery.value = query
+    fun resetConsumedFoodEntriesForNewDay() {
+        _consumedFoodEntries.value = emptyList()
+        calculateDailyTotals(emptyList())
+        _currentDay.value = getCurrentDate()
+        Log.d("FoodViewModel", "Manual reset of consumed food entries for new day (UI only).")
     }
 
-    // para calcular los numeros totales diarios
+    // metodos de busqueda y calculo de totales
+    private fun observeSearchAndCatalogChanges() {
+        viewModelScope.launch {
+            Log.d("FoodViewModelObserve", "observeSearchAndCatalogChanges started.")
+            combine(_searchQuery, _allCatalogFoodItems) { query, allItems ->
+                Pair(query, allItems)
+            }.collect { (query, allItems) ->
+                filterFoods(query, allItems)
+            }
+        }
+    }
+
+    private fun filterFoods(query: String, allItems: List<FoodItem>) {
+        if (query.isBlank()) {
+            _searchResults.value = emptyList()
+            Log.d("FoodViewModelFilter", "Query is blank. Search results cleared.")
+        } else {
+            val filteredList = allItems.filter {
+                it.name.contains(query, ignoreCase = true) ||
+                        it.details.contains(query, ignoreCase = true)
+            }
+            _searchResults.value = filteredList
+        }
+        Log.d("FoodViewModelFilter", "Filtering for query: '$query'. Found ${_searchResults.value.size} results. First result (if any): ${_searchResults.value.firstOrNull()?.name}")
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+        Log.d("FoodViewModelSearch", "Search query changed to: '$query'")
+    }
+
     private fun calculateDailyTotals(entries: List<ConsumedFoodEntry>) {
         var totalCalories = 0f
         var totalProtein = 0f
@@ -275,6 +335,21 @@ class FoodViewModel : ViewModel() {
     private fun getCurrentDate(): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         return sdf.format(Date())
+    }
+
+    fun setSelectedDate(date: String) {
+        if (_currentDay.value != date) {
+            _currentDay.value = date
+            fetchConsumedFoodEntries(date)
+            _errorMessage.value = null
+            Log.d("FoodViewModel", "User selected date: $date. Fetching entries for this date.")
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        consumedEntriesListener?.remove()
+        Log.d("FoodViewModelLifecycle", "FoodViewModel cleared. Firestore listener removed.")
     }
 }
 
