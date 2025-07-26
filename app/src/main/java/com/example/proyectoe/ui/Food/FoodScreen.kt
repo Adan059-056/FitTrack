@@ -76,15 +76,16 @@ fun FoodScreen(
                 },
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddFood,
-                containerColor = orangePrimary,
-                contentColor = Color.White
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Agregar alimento al catálogo")
-            }
-        },
+        //coemnte el boton de + por el momento
+//        floatingActionButton = {
+//            FloatingActionButton(
+//                onClick = onAddFood,
+//                containerColor = orangePrimary,
+//                contentColor = Color.White
+//            ) {
+//                Icon(Icons.Default.Add, contentDescription = "Agregar alimento al catálogo")
+//            }
+//        },
         containerColor = darkBlueBlack
     ) { innerPadding ->
         LazyColumn(
@@ -103,6 +104,8 @@ fun FoodScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+
+            // buscador de alimentos en el catalogo
             item {
                 Text(
                     text = "Comidas del Día",
@@ -111,16 +114,7 @@ fun FoodScreen(
                     color = textColor,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                MealBreakdownSection(
-                    consumedFoodEntries = consumedFoodEntries,
-                    onEditFoodEntry = { entryId -> /* TODO: Implementar edición de entrada de consumo */ },
-                    onAddFoodToMeal = { mealType -> /* Este callback se usará para el botón en MealRow */ }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
 
-            // buscador de alimentos en el catalogo
-            item {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { foodViewModel.onSearchQueryChanged(it) },
@@ -188,6 +182,15 @@ fun FoodScreen(
                     thickness = 1.dp,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
+            }
+
+            item {
+                MealBreakdownSection(
+                    consumedFoodEntries = consumedFoodEntries,
+                    onEditFoodEntry = { entryId -> /* TODO: Implementar edición de entrada de consumo */ },
+                    onAddFoodToMeal = { mealType -> /* Este callback se usará para el botón en MealRow */ }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -465,19 +468,19 @@ fun MealRow(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedButton(
-                onClick = { onAddFoodToMeal(mealName) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = orangePrimary
-                ),
-                border = BorderStroke(1.dp, orangePrimary),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("Añadir alimento al $mealName")
-            }
+//            OutlinedButton(
+//                onClick = { onAddFoodToMeal(mealName) },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 16.dp),
+//                colors = ButtonDefaults.outlinedButtonColors(
+//                    contentColor = orangePrimary
+//                ),
+//                border = BorderStroke(1.dp, orangePrimary),
+//                shape = RoundedCornerShape(8.dp)
+//            ) {
+//                Text("Añadir alimento al $mealName")
+//            }
             Spacer(modifier = Modifier.height(16.dp))
         }
     }

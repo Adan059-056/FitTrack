@@ -429,6 +429,8 @@ fun AddFoodScreen(
                                         protein = ""
                                         fat = ""
                                         carbohydrates = ""
+
+                                        onBack()
                                     },
                                     onFailure = { errorMsg ->
                                         localMessage = "Error al guardar: $errorMsg"
@@ -436,7 +438,7 @@ fun AddFoodScreen(
                                 )
                             }
                         } else {
-                            localMessage = "⚠Completa todos los campos requeridos y asegúrate que los valores sean números válidos."
+                            localMessage = "Completa todos los campos requeridos y asegúrate que los valores sean números válidos."
                         }
                     },
                     modifier = Modifier
