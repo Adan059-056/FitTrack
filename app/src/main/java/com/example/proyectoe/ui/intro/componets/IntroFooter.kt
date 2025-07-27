@@ -1,4 +1,4 @@
-package com.example.proyectoe.ui.components
+package com.example.proyectoe.ui.intro.componets
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth

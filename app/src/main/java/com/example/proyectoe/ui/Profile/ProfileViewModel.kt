@@ -1,8 +1,7 @@
 package com.example.proyectoe.ui.Profile
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyectoe.database.User
+import com.example.proyectoe.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 //import com.google.firebase.storage.FirebaseStorage
@@ -12,7 +11,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import android.net.Uri
 
-import android.content.Context
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException

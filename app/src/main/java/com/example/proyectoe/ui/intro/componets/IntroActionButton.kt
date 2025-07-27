@@ -1,6 +1,5 @@
-package com.example.proyectoe.ui.components
+package com.example.proyectoe.ui.intro.componets
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding

@@ -20,17 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.firestore.FirebaseFirestore
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.proyectoe.database.FoodItem
+import com.example.proyectoe.data.model.FoodItem
 import androidx.compose.runtime.derivedStateOf
-import com.example.proyectoe.viewmodel.*
 import androidx.compose.foundation.text.selection.TextSelectionColors
 
 @SuppressLint("UnrememberedMutableState")

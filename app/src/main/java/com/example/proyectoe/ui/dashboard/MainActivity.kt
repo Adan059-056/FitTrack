@@ -3,7 +3,6 @@ package com.example.proyectoe.ui.dashboard
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
@@ -18,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.*
 import com.example.proyectoe.data.datasource.WorkoutDataProvider.getData
-import com.example.proyectoe.database.StartScreen
+import com.example.proyectoe.ui.StartScreen
 import com.example.proyectoe.ui.Favorites.FavoritesScreen
 import com.example.proyectoe.ui.Food.AddFoodScreen
 import com.example.proyectoe.ui.Food.FoodScreen
@@ -31,7 +30,7 @@ import com.google.firebase.auth.FirebaseAuth
 import androidx.work.*
 import java.util.concurrent.TimeUnit
 import java.util.*
-import com.example.proyectoe.database.GuardarPasosWorker
+import com.example.proyectoe.data.datasource.remote.worker.GuardarPasosWorker
 import com.example.proyectoe.ui.Food.EditFoodScreen
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
@@ -54,7 +53,7 @@ class MainActivity : ComponentActivity() {
 
         FirebaseApp.initializeApp(this)
         checkAndRequestActivityRecognitionPermission()
-        super.onCreate(savedInstanceState)
+
         scheduleStepUploadWorker(this)
         setContent {
             val navController = rememberNavController()

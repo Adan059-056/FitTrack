@@ -1,4 +1,4 @@
-package com.example.proyectoe.viewmodel
+package com.example.proyectoe.ui.auth
 
 //Aqui va la logica de autentificacion
 import androidx.lifecycle.ViewModel

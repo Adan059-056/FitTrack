@@ -1,4 +1,4 @@
-package com.example.proyectoe.database
+package com.example.proyectoe.data.datasource.remote.worker
 
 import android.content.Context
 import androidx.work.CoroutineWorker
@@ -9,6 +9,12 @@ import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.*
+
+/*
+    Es un CoroutineWorker que se encarga de guardar datos (pasos diarios) en Firebase Firestore.
+    También lee datos de SharedPreferences.
+ */
+
 
 class GuardarPasosWorker(
     appContext: Context,

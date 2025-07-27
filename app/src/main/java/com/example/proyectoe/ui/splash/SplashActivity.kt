@@ -1,12 +1,16 @@
-package com.example.proyectoe.database
+package com.example.proyectoe.ui.splash
 
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.proyectoe.ui.auth.LoginActivity
 import com.example.proyectoe.ui.dashboard.MainActivity
 import com.example.proyectoe.ui.intro.IntroActivity
 import com.google.firebase.auth.FirebaseAuth
+/*
+    es una AppCompatActivity que se encarga de la lógica de inicio de la aplicación:
+    verificar el estado de autenticación del usuario y redirigir a la MainActivity o IntroActivity
+    según corresponda.
+ */
 
 class SplashActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth

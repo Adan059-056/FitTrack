@@ -1,4 +1,4 @@
-package com.example.proyectoe.database
+package com.example.proyectoe.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

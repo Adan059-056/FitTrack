@@ -1,10 +1,13 @@
-package com.example.proyectoe.database
+package com.example.proyectoe.data.repository
 
-import com.example.proyectoe.database.PasoDiario
+import com.example.proyectoe.data.model.PasoDiario
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
+/*
+    es un repositorio que se encarga de obtener datos de pasos diarios desde Firebase Firestore.
+ */
 class PasoRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()

@@ -1,7 +1,5 @@
 package com.example.proyectoe.ui.Food
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -25,12 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.proyectoe.database.FoodItem
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.proyectoe.data.model.FoodItem
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.text.selection.TextSelectionColors
 
-import androidx.compose.runtime.*
 import androidx.compose.runtime.derivedStateOf
 
 @OptIn(ExperimentalMaterial3Api::class)

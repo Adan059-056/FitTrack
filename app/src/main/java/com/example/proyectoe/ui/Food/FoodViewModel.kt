@@ -3,7 +3,7 @@ package com.example.proyectoe.ui.Food
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyectoe.database.FoodItem
+import com.example.proyectoe.data.model.FoodItem
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow

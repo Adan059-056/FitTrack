@@ -1,6 +1,5 @@
 package com.example.proyectoe.ui.Food
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,7 +28,7 @@ import androidx.compose.ui.text.input.KeyboardType
 
 
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.proyectoe.database.FoodItem
+import com.example.proyectoe.data.model.FoodItem
 
 // colres
 val darkBlueBlack = Color(0xFF0A0E21)

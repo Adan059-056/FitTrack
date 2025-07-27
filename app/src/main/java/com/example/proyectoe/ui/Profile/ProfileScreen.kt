@@ -51,20 +51,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel // para obtener la ViewModel
 import com.example.proyectoe.R
-import com.example.proyectoe.database.User
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.remember // Para recordar el Context
 import androidx.compose.ui.platform.LocalContext // Para obtener el Context
 
 import coil.compose.rememberAsyncImagePainter
@@ -75,23 +72,12 @@ import androidx.core.content.ContextCompat
 import androidx.compose.material3.TextFieldDefaults
 
 
-
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.runtime.remember // Puede que ya esté, no importa si se duplica
-import androidx.compose.ui.platform.LocalContext
-import coil.compose.rememberAsyncImagePainter // <-- ¡Esta es clave para cargar desde URL/URI!
-
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.AndroidViewModel
 import android.app.Application
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.CreationExtras
 
 
-import androidx.compose.ui.platform.LocalContext // Para obtener el contexto
 import androidx.lifecycle.ViewModel // <-- ¡ASEGÚRATE DE QUE ESTA ESTÉ!
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 private val SecondaryColor = Color(0xFFFFFFFF)   // Blanco para textos
 

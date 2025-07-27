@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.proyectoe.data.sensor.ManejoContadorPasos
+import com.example.proyectoe.data.datasource.local.sensor.ManejoContadorPasos
 import androidx.lifecycle.map
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
