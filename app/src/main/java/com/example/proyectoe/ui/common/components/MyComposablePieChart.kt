@@ -72,14 +72,22 @@ fun MyComposePieChart(
                 selectionShift = 0f
             }
             //para ajustar los valores de la grafica
+
             val pieData = PieData(dataSet).apply {//muestra los porcentajes de la grafica
+
                 setValueFormatter(com.github.mikephil.charting.formatter.PercentFormatter(pieChart))
-                //para valores enteros:: setValueFormatter(com.github.mikephil.charting.formatter.ValueFormatter())
+
+            //para valores enteros:: setValueFormatter(com.github.mikephil.charting.formatter.ValueFormatter())
+                setDrawValues(false)
             }
-            pieData.setValueTextSize(12f)
-            pieData.setValueTextColor(Color.WHITE)
+
+
+            //pieData.setValueTextSize(12f)
+            //pieData.setValueTextColor(Color.WHITE)
 
             pieChart.data = pieData
+
+
             pieChart.setDrawEntryLabels(false) // No mostrar etiquetas dentro de la gráfica
             pieChart.description.isEnabled = false
             pieChart.legend.isEnabled = true
