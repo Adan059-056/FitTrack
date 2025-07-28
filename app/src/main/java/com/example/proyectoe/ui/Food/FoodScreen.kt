@@ -121,21 +121,21 @@ fun FoodScreen(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { foodViewModel.onSearchQueryChanged(it) },
-                    label = { Text("Buscar alimento...", color = textColor.copy(alpha = 0.7f)) },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = textColor) },
+                    label = { Text("Buscar alimento...", color = Color.White.copy(alpha = 0.7f)) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-//                    colors = TextFieldDefaults.colors(
-//                        focusedTextColor = textColor,
-//                        unfocusedTextColor = textColor,
-//                        focusedContainerColor = Color.Transparent,
-//                        unfocusedContainerColor = Color.Transparent,
-//                        focusedBorderColor = orangePrimary,
-//                        unfocusedBorderColor = textColor.copy(alpha = 0.3f),
-//                        cursorColor = orangePrimary,
-//                        focusedLabelColor = orangePrimary,
-//                        unfocusedLabelColor = textColor.copy(alpha = 0.7f)
-//                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = orangePrimary,
+                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.3f),
+                        cursorColor = orangePrimary,
+                        focusedLabelColor = orangePrimary,
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f)
+                    ),
                     shape = RoundedCornerShape(12.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
