@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val auth = FirebaseAuth.getInstance()
 
-            // Determine the start destination based on authentication state
+            // Da la ruta despuesd e pasar la autenticacion o si no funciona
             val startDestination = if (auth.currentUser != null) {
                 "home"
             } else {
@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
 
-            // Hide bottom bar for specific routes
+            // para esconder la barra de botones o mostralos
             val showBottomBar =
                 currentRoute !in listOf("start", "singin_route", "register_route", "add_food_route")
 
@@ -183,7 +183,7 @@ class MainActivity : ComponentActivity() {
                                     "Error: ID de alimento no proporcionado",
                                     Toast.LENGTH_SHORT
                                 ).show()
-                                navController.popBackStack() // Regresar para evitar un estado roto
+                                navController.popBackStack() // Regresa para evitar un estado roto
                             }
                         }
                         composable("profile") {

@@ -15,7 +15,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
-import android.app.Application // <-- ¡NUEVA IMPORTACIÓN!
+import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
@@ -51,7 +51,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
-    //private val storage = FirebaseStorage.getInstance()
 
     init {
         loadUserProfile()
@@ -80,7 +79,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 //                        }
                         val storedPhotoFileName = userData?.photoFileName
                         if (storedPhotoFileName != null && storedPhotoFileName.isNotEmpty()) {
-                            val file = File(appContext.filesDir, storedPhotoFileName) // <-- Usa appContext
+                            val file = File(appContext.filesDir, storedPhotoFileName)
                             if (file.exists()) {
                                 _profilePhotoUri.value = Uri.fromFile(file)
                             } else {
@@ -118,10 +117,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
         if (_isEditing.value) {
             _editableUser.value = _user.value?.copy()
-            // Al entrar en modo edición, reinicia la URI local a la foto del usuario
+            // Al entrar en modo edición reinicia la imagen defecto local a la foto del usuario
             val currentPhotoFileName = _user.value?.photoFileName
             _profilePhotoUri.value = if (currentPhotoFileName != null && currentPhotoFileName.isNotEmpty()) {
-                val file = File(appContext.filesDir, currentPhotoFileName) // <-- Usa appContext
+                val file = File(appContext.filesDir, currentPhotoFileName)
                 if (file.exists()) Uri.fromFile(file) else null
             } else {
                 null
@@ -131,7 +130,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             // Al salir del modo edición sin guardar, vuelve a la foto guardada
             val currentPhotoFileName = _user.value?.photoFileName
             _profilePhotoUri.value = if (currentPhotoFileName != null && currentPhotoFileName.isNotEmpty()) {
-                val file = File(appContext.filesDir, currentPhotoFileName) // <-- Usa appContext
+                val file = File(appContext.filesDir, currentPhotoFileName)
                 if (file.exists()) Uri.fromFile(file) else null
             } else {
                 null
@@ -180,7 +179,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             val userId = auth.currentUser?.uid
             val userToSave = _editableUser.value
-            val currentSelectedPhotoUri = _profilePhotoUri.value // Esta es la URI TEMPORAL de la galería
+            val currentSelectedPhotoUri = _profilePhotoUri.value // foto temporal de la galería
 
             if (userId == null) {
                 _errorMessage.value = "Usuario no autenticado."
@@ -196,13 +195,12 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             try {
                 var photoFileNameToSave: String? = userToSave.photoFileName // Nombre del archivo actual
 
-                // Si se ha seleccionado una nueva URI (de la galería) y no es ya un archivo local
-                // (currentSelectedPhotoUri.scheme == "content" indica una URI de la galería)
+                // si se eligio foto elige esa y no la defecto
                 if (currentSelectedPhotoUri != null && currentSelectedPhotoUri.scheme == "content") {
                     val newFileName = "profile_photo_${userId}_${System.currentTimeMillis()}.jpg"
                     val destinationFile = File(appContext.filesDir, newFileName) // <-- Usa appContext
 
-                    appContext.contentResolver.openInputStream(currentSelectedPhotoUri)?.use { inputStream -> // <-- Usa appContext
+                    appContext.contentResolver.openInputStream(currentSelectedPhotoUri)?.use { inputStream ->
                         FileOutputStream(destinationFile).use { outputStream ->
                             inputStream.copyTo(outputStream)
                         }

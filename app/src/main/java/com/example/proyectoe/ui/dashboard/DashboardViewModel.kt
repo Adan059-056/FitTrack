@@ -14,13 +14,13 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val manejoContadorPasos = ManejoContadorPasos(application)
 
-    val distanceKm: LiveData<Float> = currentSteps.map { steps -> // <-- Aquí el cambio de sintaxis
+    val distanceKm: LiveData<Float> = currentSteps.map { steps ->
         val strideLengthMeters = 0.76f
         val distanceMeters = steps * strideLengthMeters
         val distanceKm = distanceMeters / 1000f
         String.format("%.2f", distanceKm).toFloat()
     }
-    //Hay que modificar para que se ajuste segun tus objetivos
+    // objetivo diari de pasos
     val dailyStepGoal = 10000f
 
     val stepProgressPercentage: LiveData<Float> = currentSteps.map { steps ->

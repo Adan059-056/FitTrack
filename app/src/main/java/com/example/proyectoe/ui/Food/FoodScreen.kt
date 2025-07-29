@@ -190,8 +190,8 @@ fun FoodScreen(
             item {
                 MealBreakdownSection(
                     consumedFoodEntries = consumedFoodEntries,
-                    onEditFoodEntry = { entryId -> /* TODO: Implementar edición de entrada de consumo */ },
-                    onAddFoodToMeal = { mealType -> /* Este callback se usará para el botón en MealRow */ }
+                    onEditFoodEntry = { entryId -> },
+                    onAddFoodToMeal = { mealType -> }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }

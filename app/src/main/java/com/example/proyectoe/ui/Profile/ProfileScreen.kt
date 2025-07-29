@@ -84,24 +84,22 @@ private val SecondaryColor = Color(0xFFFFFFFF)   // Blanco para textos
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    // CAMBIA ESTA SECCIÓN COMPLETA
     viewModel: ProfileViewModel = run {
         val context = LocalContext.current // Obtenemos el Context Composable aquí
         val application = context.applicationContext as Application // Obtenemos el Application context aquí
 
-        // Definimos el factory aquí, fuera del viewModel() directamente
         viewModel(
             factory = object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
                     if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
                         @Suppress("UNCHECKED_CAST")
-                        return ProfileViewModel(application) as T // Usamos la 'application' capturada
+                        return ProfileViewModel(application) as T
                     }
                     throw IllegalArgumentException("Unknown ViewModel class")
                 }
             }
         )
-    }, // <-- Asegúrate de que esta coma esté si hay más parámetros
+    },
     onBack: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
@@ -110,7 +108,7 @@ fun ProfileScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val isSuccess by viewModel.isSuccess.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-    val isEditing by viewModel.isEditing.collectAsState() //Observar el estado de edición
+    val isEditing by viewModel.isEditing.collectAsState()
     val editableUser by viewModel.editableUser.collectAsState()
     val profilePhotoUri by viewModel.profilePhotoUri.collectAsState()
     val context = LocalContext.current
@@ -119,25 +117,23 @@ fun ProfileScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            viewModel.updateProfilePhotoUri(uri) // Actualiza la URI en la ViewModel
-            // Si quieres que se guarde automáticamente al seleccionar, llama a la función de guardado aquí
-            // viewModel.uploadProfilePhotoAndSaveProfileChanges()
+            viewModel.updateProfilePhotoUri(uri) // Actualiza la foto en la ViewModel
+            // viewModel.uploadProfilePhotoAndSaveProfileChanges() //para guardar automaticamente al seleccionar la foto
         }
     }
 
+    //permiso para pedir la foto o mas bien abrir la galeria
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Permiso concedido, lanzar el selector de imágenes
-            pickImageLauncher.launch("image/*") // Solicita cualquier tipo de imagen
+            pickImageLauncher.launch("image/*")
         } else {
-            // Permiso denegado, informar al usuario
             Toast.makeText(context, "Permiso para acceder a la galería denegado.", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Paleta de colores
+    //colores
     val darkBlue = Color(0xFF0A1128)
     val deepBlue = Color(0xFF0F1C3F)
     val navyBlue = Color(0xFF1A2C5C)
@@ -161,7 +157,7 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
-                    // Icono de lápiz para TOGGLE EDIT MODE
+                    // icono de lapiz pra editrar
                     IconButton(onClick = { viewModel.toggleEditMode() }) {
                         Icon(
                             Icons.Default.Edit,
@@ -209,7 +205,6 @@ fun ProfileScreen(
                     }
                 }
                 errorMessage != null -> {
-                    // Muestra un mensaje de error si algo salió mal
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
@@ -228,7 +223,6 @@ fun ProfileScreen(
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
                     ) {
-                        //Mensaje de Éxito
                         if (isSuccess != null) {
                             Text(
                                 text = isSuccess!!,
@@ -257,7 +251,6 @@ fun ProfileScreen(
                             isEditing = isEditing,
                             onNameChanged = { viewModel.updateEditableName(it) },
                             onEmailChanged = { /* viewModel.updateEditableEmail(it) */ },
-                            // AÑADE ESTOS PARÁMETROS AQUÍ PARA PASÁRSELOS A PROFILEHEADER
                             onCameraClick = {
                                 when {
                                     ContextCompat.checkSelfPermission(
@@ -373,8 +366,8 @@ fun ProfileHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             BoxWithCameraIcon(
-                onCameraClick = onCameraClick, // Pasa el callback recibido
-                profilePhotoUri = profilePhotoUri, // Pasa la URI de la foto recibida
+                onCameraClick = onCameraClick,
+                profilePhotoUri = profilePhotoUri,
                 isEditing = isEditing
             )
 
@@ -384,7 +377,6 @@ fun ProfileHeader(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
-                // Nombre de usuario - condicional para Text o OutlinedTextField
                 if (isEditing) {
                     OutlinedTextField(
                         value = userName,
@@ -392,10 +384,9 @@ fun ProfileHeader(
                         label = { Text("Nombre Completo") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        colors = TextFieldDefaults.colors( // Use TextFieldDefaults.colors()
-                            focusedTextColor = Color.Red, // Set your desired color when focused
-                            unfocusedTextColor = Color.Blue // Set your desired color when not focused
-                            // You can also customize other colors like containerColor, cursorColor, etc.
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = Color.Red,
+                            unfocusedTextColor = Color.Blue
                         )
                     )
                 } else {
@@ -437,16 +428,14 @@ fun ProfileHeader(
 @Composable
 fun BoxWithCameraIcon(
     // Recibe el controlador para lanzar la galería
-    onCameraClick: () -> Unit, // NUEVO: Callback para el click en el icono de cámara
-    profilePhotoUri: Uri?, // NUEVO: La URI de la foto seleccionada
+    onCameraClick: () -> Unit, //Callback para el click en el icono de cámara
+    profilePhotoUri: Uri?,
     isEditing: Boolean
 ) {
     Box(
         contentAlignment = Alignment.BottomEnd
     ) {
-        // Carga la imagen:
-        // 1. Si hay una URI local, cárgala.
-        // 2. Si no, usa el recurso por defecto.
+        // Carga la imagen
         val painter = if (profilePhotoUri != null) {
             rememberAsyncImagePainter(model = profilePhotoUri)
         } else {
@@ -454,7 +443,7 @@ fun BoxWithCameraIcon(
         }
 
         Image(
-            painter = painter, // Usa el painter dinámico
+            painter = painter,
             contentDescription = "Foto de perfil",
             modifier = Modifier
                 .size(120.dp)
@@ -464,7 +453,7 @@ fun BoxWithCameraIcon(
         val deepBlue = Color(0xFF0F1C3F)
         if(isEditing){
         IconButton(
-            onClick = onCameraClick, // Usa el callback aquí
+            onClick = onCameraClick,
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
@@ -494,7 +483,7 @@ fun PersonalInfoSection(
     objetivo: String,
     apellidos: String,
     isEditing: Boolean,
-    onFechaNacimientoChanged: (String) -> Unit, // Callbacks para cada campo
+    onFechaNacimientoChanged: (String) -> Unit, // Callbacks para cada campos
     onGeneroChanged: (String) -> Unit,
     onEstaturaChanged: (String) -> Unit,
     onPesoChanged: (String) -> Unit,
@@ -530,10 +519,9 @@ fun PersonalInfoSection(
 
                     //AQUI ES DONDE se cambia el color de texto cuando se edita el textField
 
-                    colors = TextFieldDefaults.colors( // Use TextFieldDefaults.colors()
-                        focusedTextColor = Color.Red, // Set your desired color when focused
-                        unfocusedTextColor = Color.Blue // Set your desired color when not focused
-                        // You can also customize other colors like containerColor, cursorColor, etc.
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = Color.Red,
+                        unfocusedTextColor = Color.Blue
                     )
 
 
@@ -622,7 +610,7 @@ fun InfoRowEditable(
     textColor: Color,
     isEditing: Boolean,
     onValueChange: (String) -> Unit,
-    suffix: String = "" // Para unidades como "cm" o "kg"
+    suffix: String = ""
 ) {
     Row(
         modifier = Modifier
@@ -640,10 +628,9 @@ fun InfoRowEditable(
                     .weight(1f)
                     .padding(start = 8.dp),
                 singleLine = true,
-                colors = TextFieldDefaults.colors( // Use TextFieldDefaults.colors()
-                    focusedTextColor = Color.Red, // Set your desired color when focused
-                    unfocusedTextColor = Color.Blue // Set your desired color when not focused
-                    // You can also customize other colors like containerColor, cursorColor, etc.
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.Red,
+                    unfocusedTextColor = Color.Blue
                 ),
                 trailingIcon = if (suffix.isNotBlank()) {
                     { Text(suffix, color = textColor.copy(alpha = 0.8f)) }

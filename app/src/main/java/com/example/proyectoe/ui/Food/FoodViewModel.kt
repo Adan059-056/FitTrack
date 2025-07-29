@@ -273,12 +273,12 @@ class FoodViewModel : ViewModel() {
         }
     }
 
-    fun resetConsumedFoodEntriesForNewDay() {
-        _consumedFoodEntries.value = emptyList()
-        calculateDailyTotals(emptyList())
-        _currentDay.value = getCurrentDate()
-        Log.d("FoodViewModel", "Manual reset of consumed food entries for new day (UI only).")
-    }
+//    fun resetConsumedFoodEntriesForNewDay() {
+//        _consumedFoodEntries.value = emptyList()
+//        calculateDailyTotals(emptyList())
+//        _currentDay.value = getCurrentDate()
+//        Log.d("FoodViewModel", "Reinicio manual de los alimentos consumidos para un nuevo dia.")
+//    }
 
     // metodos de busqueda y calculo de totales
     private fun observeSearchAndCatalogChanges() {
