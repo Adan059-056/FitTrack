@@ -1,7 +1,9 @@
-package com.example.proyectoe.database
+package com.example.proyectoe.data.model
 
 import com.google.firebase.firestore.DocumentId
 
+
+// Aqui se define la estructura del elemento comida, que proviene de Firestore
 data class FoodItem(
     @DocumentId
     val id: String = "",

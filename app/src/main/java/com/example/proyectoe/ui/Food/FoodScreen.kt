@@ -1,6 +1,5 @@
 package com.example.proyectoe.ui.Food
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,7 +28,7 @@ import androidx.compose.ui.text.input.KeyboardType
 
 
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.proyectoe.database.FoodItem
+import com.example.proyectoe.data.model.FoodItem
 
 // colres
 val darkBlueBlack = Color(0xFF0A0E21)
@@ -122,21 +121,21 @@ fun FoodScreen(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { foodViewModel.onSearchQueryChanged(it) },
-                    label = { Text("Buscar alimento...", color = textColor.copy(alpha = 0.7f)) },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = textColor) },
+                    label = { Text("Buscar alimento...", color = Color.White.copy(alpha = 0.7f)) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-//                    colors = TextFieldDefaults.colors(
-//                        focusedTextColor = textColor,
-//                        unfocusedTextColor = textColor,
-//                        focusedContainerColor = Color.Transparent,
-//                        unfocusedContainerColor = Color.Transparent,
-//                        focusedBorderColor = orangePrimary,
-//                        unfocusedBorderColor = textColor.copy(alpha = 0.3f),
-//                        cursorColor = orangePrimary,
-//                        focusedLabelColor = orangePrimary,
-//                        unfocusedLabelColor = textColor.copy(alpha = 0.7f)
-//                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = orangePrimary,
+                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.3f),
+                        cursorColor = orangePrimary,
+                        focusedLabelColor = orangePrimary,
+                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f)
+                    ),
                     shape = RoundedCornerShape(12.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -191,8 +190,8 @@ fun FoodScreen(
             item {
                 MealBreakdownSection(
                     consumedFoodEntries = consumedFoodEntries,
-                    onEditFoodEntry = { entryId -> /* TODO: Implementar edición de entrada de consumo */ },
-                    onAddFoodToMeal = { mealType -> /* Este callback se usará para el botón en MealRow */ }
+                    onEditFoodEntry = { entryId -> },
+                    onAddFoodToMeal = { mealType -> }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }

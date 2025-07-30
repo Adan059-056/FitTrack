@@ -1,4 +1,4 @@
-package com.example.proyectoe.ui.components
+package com.example.proyectoe.ui.common.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -9,9 +9,7 @@ import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
-import com.github.mikephil.charting.utils.ColorTemplate
 
-import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.LegendEntry
 
@@ -74,14 +72,22 @@ fun MyComposePieChart(
                 selectionShift = 0f
             }
             //para ajustar los valores de la grafica
+
             val pieData = PieData(dataSet).apply {//muestra los porcentajes de la grafica
+
                 setValueFormatter(com.github.mikephil.charting.formatter.PercentFormatter(pieChart))
-                //para valores enteros:: setValueFormatter(com.github.mikephil.charting.formatter.ValueFormatter())
+
+            //para valores enteros:: setValueFormatter(com.github.mikephil.charting.formatter.ValueFormatter())
+                setDrawValues(false)
             }
-            pieData.setValueTextSize(12f)
-            pieData.setValueTextColor(Color.WHITE)
+
+
+            //pieData.setValueTextSize(12f)
+            //pieData.setValueTextColor(Color.WHITE)
 
             pieChart.data = pieData
+
+
             pieChart.setDrawEntryLabels(false) // No mostrar etiquetas dentro de la gráfica
             pieChart.description.isEnabled = false
             pieChart.legend.isEnabled = true

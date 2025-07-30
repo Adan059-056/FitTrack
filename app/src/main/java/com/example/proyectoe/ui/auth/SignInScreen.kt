@@ -8,7 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.proyectoe.ui.components.IntroFooter // Importa tu IntroFooter
+import com.example.proyectoe.ui.intro.componets.IntroFooter // Importa tu IntroFooter
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable

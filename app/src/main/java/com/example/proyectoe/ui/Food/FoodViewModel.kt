@@ -3,7 +3,7 @@ package com.example.proyectoe.ui.Food
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyectoe.database.FoodItem
+import com.example.proyectoe.data.model.FoodItem
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -273,12 +273,12 @@ class FoodViewModel : ViewModel() {
         }
     }
 
-    fun resetConsumedFoodEntriesForNewDay() {
-        _consumedFoodEntries.value = emptyList()
-        calculateDailyTotals(emptyList())
-        _currentDay.value = getCurrentDate()
-        Log.d("FoodViewModel", "Manual reset of consumed food entries for new day (UI only).")
-    }
+//    fun resetConsumedFoodEntriesForNewDay() {
+//        _consumedFoodEntries.value = emptyList()
+//        calculateDailyTotals(emptyList())
+//        _currentDay.value = getCurrentDate()
+//        Log.d("FoodViewModel", "Reinicio manual de los alimentos consumidos para un nuevo dia.")
+//    }
 
     // metodos de busqueda y calculo de totales
     private fun observeSearchAndCatalogChanges() {

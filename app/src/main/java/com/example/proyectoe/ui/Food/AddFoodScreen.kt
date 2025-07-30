@@ -20,24 +20,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.firestore.FirebaseFirestore
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.proyectoe.database.FoodItem
+import com.example.proyectoe.data.model.FoodItem
 import androidx.compose.runtime.derivedStateOf
-import com.example.proyectoe.viewmodel.*
 import androidx.compose.foundation.text.selection.TextSelectionColors
 
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddFoodScreen(
-    foodId: String? = null, // Parámetro para saber si es modo edición
+    foodId: String? = null,
     onBack: () -> Unit = {},
     foodViewModel: FoodViewModel = viewModel()
 ) {
@@ -68,7 +64,7 @@ fun AddFoodScreen(
         }
     }
 
-    // Validación
+    //validacion
     val isFormValid by remember {
         derivedStateOf {
             name.isNotBlank() &&
@@ -79,7 +75,7 @@ fun AddFoodScreen(
         }
     }
 
-    // colores
+    //colores
     val darkBlueBlack = Color(0xFF0A0E21)
     val orangePrimary = Color(0xFFFF9800)
     val orangeSecondary = Color(0xFFFF5722)
@@ -166,7 +162,7 @@ fun AddFoodScreen(
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = cardColor, // Usar cardColor para fondo sólido
+                        focusedContainerColor = cardColor,
                         unfocusedContainerColor = cardColor,
                         focusedTextColor = textColor,
                         unfocusedTextColor = textColor,
@@ -321,7 +317,7 @@ fun AddFoodScreen(
                         carbohydrates = newValue.filter { it.isDigit() || (it == '.' && !carbohydrates.contains('.')) }
                     },
                     label = { Text("Carbohidratos (g)", color = textColor.copy(alpha = 0.7f)) },
-                    leadingIcon = { Text("🍚", modifier = Modifier.size(24.dp), color = orangePrimary) }, // Icono de carbohidratos
+                    leadingIcon = { Text("🍚", modifier = Modifier.size(24.dp), color = orangePrimary) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(12.dp),

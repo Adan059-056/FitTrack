@@ -21,17 +21,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
-import android.app.Application // Para el factory de AndroidViewModel
+import android.app.Application
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import com.example.proyectoe.ui.Profile.ProfileViewModel
 import com.example.proyectoe.ui.dashboard.components.UserResume
-import androidx.compose.foundation.layout.fillMaxSize // Important for the LazyColumn
-import com.example.proyectoe.ui.dashboard.components.UserResume // Import UserResume
+import androidx.compose.foundation.layout.fillMaxSize
+import com.example.proyectoe.ui.dashboard.components.UserResume
 import androidx.compose.ui.Alignment
 //import com.example.proyectoe.ui.dashboard.components.miniStatCard
-import com.example.proyectoe.ui.dashboard.DashboardViewModel // Asegúrate que la ruta sea correcta
+import com.example.proyectoe.ui.dashboard.DashboardViewModel
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.Lifecycle

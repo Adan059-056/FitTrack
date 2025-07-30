@@ -1,4 +1,4 @@
-package com.example.proyectoe.data.sensor
+package com.example.proyectoe.data.datasource.local.sensor
 
 import android.content.Context
 import android.hardware.Sensor
@@ -10,6 +10,11 @@ import android.content.SharedPreferences
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+
+/* es una clase que encapsula la lógica para interactuar directamente con el sensor de pasos
+   del dispositivo y manejar el conteo diario, incluyendo la persistencia de
+   datos con SharedPreferences.
+ */
 
 class ManejoContadorPasos(context: Context) : SensorEventListener {
 
@@ -126,4 +131,6 @@ class ManejoContadorPasos(context: Context) : SensorEventListener {
         onStepCountChanged?.invoke(0f)
         println("ManejoContadorPasos: Conteo diario reiniciado manualmente.")
     }
+
+
 }

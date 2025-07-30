@@ -1,7 +1,5 @@
 package com.example.proyectoe.ui.Food
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -25,16 +23,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.proyectoe.database.FoodItem
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.proyectoe.data.model.FoodItem
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.text.selection.TextSelectionColors
 
-import androidx.compose.runtime.*
 import androidx.compose.runtime.derivedStateOf
 
 @OptIn(ExperimentalMaterial3Api::class)
-//@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EditFoodScreen(
     foodItemId: String,
@@ -42,7 +37,7 @@ fun EditFoodScreen(
     onFoodUpdated: () -> Unit = {},
     foodViewModel: FoodViewModel = viewModel()
 ) {
-    // Definición de colores para el tema oscuro
+    //colores
     val darkBlueBlack = Color(0xFF0A0E21)
     val orangePrimary = Color(0xFFFF9800)
     val orangeSecondary = Color(0xFFFF5722)
@@ -187,7 +182,7 @@ fun EditFoodScreen(
                             cursorColor = orangePrimary,
                             focusedIndicatorColor = orangePrimary,
                             unfocusedIndicatorColor = Color(0xFF2A2A3C),
-                            selectionColors = TextSelectionColors( // Añadir selección de colores
+                            selectionColors = TextSelectionColors(
                                 handleColor = orangePrimary,
                                 backgroundColor = orangePrimary.copy(alpha = 0.4f)
                             )
@@ -298,13 +293,12 @@ fun EditFoodScreen(
                             Text(
                                 "🥩",
                                 modifier = Modifier.size(24.dp),
-                                // color = orangePrimary // Esto es para el Composable Text, no para un String emoji directamente
                             )
                         },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(12.dp),
-                        colors = TextFieldDefaults.colors( // USAR TextFieldDefaults.colors
+                        colors = TextFieldDefaults.colors(
                             focusedContainerColor = cardColor,
                             unfocusedContainerColor = cardColor,
                             focusedTextColor = textColor,
@@ -342,7 +336,6 @@ fun EditFoodScreen(
                             Text(
                                 "🥑",
                                 modifier = Modifier.size(24.dp),
-                                // color = orangePrimary
                             )
                         },
                         singleLine = true,
@@ -498,7 +491,7 @@ fun EditFoodScreen(
                                     fat = fat.toFloatOrNull() ?: 0f,
                                     carbohydrates = carbohydrates.toFloatOrNull() ?: 0f
                                 )
-                                foodViewModel.updateFoodItem( // Usar updateFoodItem
+                                foodViewModel.updateFoodItem(
                                     updatedFood,
                                     onSuccess = {
                                         successMessageLocal = "Alimento actualizado exitosamente"

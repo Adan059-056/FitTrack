@@ -1,8 +1,8 @@
 package com.example.proyectoe.ui.dashboard
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.*
 import com.example.proyectoe.data.datasource.WorkoutDataProvider.getData
-import com.example.proyectoe.database.StartScreen
+import com.example.proyectoe.ui.StartScreen
 import com.example.proyectoe.ui.Favorites.FavoritesScreen
 import com.example.proyectoe.ui.Food.AddFoodScreen
 import com.example.proyectoe.ui.Food.FoodScreen
@@ -27,15 +27,13 @@ import com.example.proyectoe.ui.auth.SignInScreen
 import com.example.proyectoe.ui.dashboard.components.MainBottonBar
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import androidx.work.*
+import java.util.concurrent.TimeUnit
+import java.util.*
+import com.example.proyectoe.data.datasource.remote.worker.GuardarPasosWorker
 import com.example.proyectoe.ui.Food.EditFoodScreen
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import com.example.proyectoe.database.UploadStepsWorker
-import java.util.Calendar
-import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
 
@@ -49,17 +47,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @SuppressLint("MissingSuperCall")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         FirebaseApp.initializeApp(this)
         checkAndRequestActivityRecognitionPermission()
+
         scheduleStepUploadWorker(this)
         setContent {
             val navController = rememberNavController()
             val auth = FirebaseAuth.getInstance()
 
-            // Determine the start destination based on authentication state
+            // Da la ruta despuesd e pasar la autenticacion o si no funciona
             val startDestination = if (auth.currentUser != null) {
                 "home"
             } else {
@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
 
-            // Hide bottom bar for specific routes
+            // para esconder la barra de botones o mostralos
             val showBottomBar =
                 currentRoute !in listOf("start", "singin_route", "register_route", "add_food_route")
 
@@ -183,7 +183,7 @@ class MainActivity : ComponentActivity() {
                                     "Error: ID de alimento no proporcionado",
                                     Toast.LENGTH_SHORT
                                 ).show()
-                                navController.popBackStack() // Regresar para evitar un estado roto
+                                navController.popBackStack() // Regresa para evitar un estado roto
                             }
                         }
                         composable("profile") {
@@ -204,31 +204,31 @@ class MainActivity : ComponentActivity() {
         }
     }
     fun scheduleStepUploadWorker(context: Context) {
-        val currentDate = Calendar.getInstance()
-        val dueDate = Calendar.getInstance()
+        val delay = calculateDelayTo11PM()
 
-        // Establecer la hora a las 11:00 PM
-        dueDate.set(Calendar.HOUR_OF_DAY, 23)
-        dueDate.set(Calendar.MINUTE, 0)
-        dueDate.set(Calendar.SECOND, 0)
-
-        // Calcular el tiempo de espera inicial
-        if (dueDate.before(currentDate)) {
-            dueDate.add(Calendar.HOUR_OF_DAY, 24)
-        }
-
-        val timeDiff = dueDate.timeInMillis - currentDate.timeInMillis
-
-        val dailyWorkRequest = PeriodicWorkRequestBuilder<UploadStepsWorker>(1, TimeUnit.DAYS)
-            .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
+        val workRequest = PeriodicWorkRequestBuilder<GuardarPasosWorker>(24, TimeUnit.HOURS)
+            .setInitialDelay(delay, TimeUnit.MILLISECONDS)
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            "daily_step_upload",
-            ExistingPeriodicWorkPolicy.REPLACE,
-            dailyWorkRequest
+            "subir_pasos_diarios",
+            ExistingPeriodicWorkPolicy.UPDATE,
+            workRequest
         )
     }
+
+    fun calculateDelayTo11PM(): Long {
+        val now = Calendar.getInstance()
+        val target = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 9)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            if (before(now)) add(Calendar.DAY_OF_YEAR, 1)
+        }
+        return target.timeInMillis - now.timeInMillis
+    }
+
     private fun checkAndRequestActivityRecognitionPermission() {
         when {
             ContextCompat.checkSelfPermission(

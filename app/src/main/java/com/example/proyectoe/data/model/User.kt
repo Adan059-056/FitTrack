@@ -1,4 +1,4 @@
-package com.example.proyectoe.database
+package com.example.proyectoe.data.model
 
 data class User(
     val uid: String = "",
