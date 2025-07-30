@@ -11,7 +11,7 @@ import com.example.proyectoe.R
 @Composable
 fun IntroHeader(){
     Image(
-        painter = painterResource(id= R.drawable.intro_pic),
+        painter = painterResource(id= R.drawable.intro),
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = Modifier.fillMaxWidth()
