@@ -14,8 +14,6 @@ val cardColor = Color(0xFF1E1E2D)
 @Composable
 fun resumeStepsScreen(
 
-
-
 ){
 
 

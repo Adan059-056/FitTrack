@@ -1,8 +1,7 @@
 package com.example.proyectoe.ui.dashboard
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
@@ -23,17 +22,14 @@ import com.example.proyectoe.ui.Food.AddFoodScreen
 import com.example.proyectoe.ui.Food.FoodScreen
 import com.example.proyectoe.ui.Profile.ProfileScreen
 import com.example.proyectoe.ui.auth.RegisterScreen
-import com.example.proyectoe.ui.auth.SignInScreen
+import com.example.proyectoe.ui.auth.LoginScreen
 import com.example.proyectoe.ui.dashboard.components.MainBottonBar
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
-import androidx.work.*
-import java.util.concurrent.TimeUnit
-import java.util.*
-import com.example.proyectoe.data.datasource.remote.worker.GuardarPasosWorker
 import com.example.proyectoe.ui.Food.EditFoodScreen
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
+import com.example.proyectoe.ui.auth.LoginActivity
 
 class MainActivity : ComponentActivity() {
 
@@ -47,19 +43,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @SuppressLint("MissingSuperCall")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         FirebaseApp.initializeApp(this)
         checkAndRequestActivityRecognitionPermission()
 
-        scheduleStepUploadWorker(this)
         setContent {
             val navController = rememberNavController()
             val auth = FirebaseAuth.getInstance()
 
-            // Da la ruta despuesd e pasar la autenticacion o si no funciona
+            // Da la ruta despues de pasar la autenticacion o si no funciona
             val startDestination = if (auth.currentUser != null) {
                 "home"
             } else {
@@ -99,26 +93,17 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onUserNotLoggedIn = {
-                                    navController.navigate("singin_route") {
-                                        popUpTo("start") { inclusive = true }
-                                        launchSingleTop = true
-                                    }
+                                    val intent = Intent(this@MainActivity, LoginActivity::class.java)
+                                    startActivity(intent)
+                                    finish()
                                 }
                             )
                         }
 
                         composable("singin_route") {
-                            SignInScreen(
-                                onSignInSuccess = {
-                                    navController.navigate("home") {
-                                        popUpTo("singin_route") { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                },
-                                onNavigateToRegister = {
-                                    navController.navigate("register_route")
-                                }
-                            )
+                            val intent = Intent(this@MainActivity, LoginActivity::class.java)
+                            startActivity(intent)
+                            finish()
                         }
 
                         composable("register_route") {
@@ -130,10 +115,9 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onNavigateBack = {
-                                    navController.navigate("singin_route") {
-                                        popUpTo("register_route") { inclusive = true }
-                                        launchSingleTop = true
-                                    }
+                                    val intent = Intent(this@MainActivity, LoginActivity::class.java)
+                                    startActivity(intent)
+                                    finish()
                                 },
                                 onNavigateIntro = {
                                     finish()
@@ -172,7 +156,7 @@ class MainActivity : ComponentActivity() {
                                     foodItemId = foodId,
                                     onBack = { navController.popBackStack() },
                                     onFoodUpdated = {
-                                        // Después de actualizarpara volver a la pantalla de alimentos
+                                        // Después de actualizar para volver a la pantalla de alimentos
                                         navController.popBackStack()
                                     }
                                 )
@@ -191,10 +175,9 @@ class MainActivity : ComponentActivity() {
                                 onBack = { navController.popBackStack() },
                                 onLogout = {
                                     auth.signOut()
-                                    navController.navigate("singin_route") {
-                                        popUpTo("home") { inclusive = true }
-                                        launchSingleTop = true
-                                    }
+                                    val intent = Intent(this@MainActivity, LoginActivity::class.java)
+                                    startActivity(intent)
+                                    finish()
                                 }
                             )
                         }
@@ -202,31 +185,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-    fun scheduleStepUploadWorker(context: Context) {
-        val delay = calculateDelayTo11PM()
-
-        val workRequest = PeriodicWorkRequestBuilder<GuardarPasosWorker>(24, TimeUnit.HOURS)
-            .setInitialDelay(delay, TimeUnit.MILLISECONDS)
-            .build()
-
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            "subir_pasos_diarios",
-            ExistingPeriodicWorkPolicy.UPDATE,
-            workRequest
-        )
-    }
-
-    fun calculateDelayTo11PM(): Long {
-        val now = Calendar.getInstance()
-        val target = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 9)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-            if (before(now)) add(Calendar.DAY_OF_YEAR, 1)
-        }
-        return target.timeInMillis - now.timeInMillis
     }
 
     private fun checkAndRequestActivityRecognitionPermission() {
@@ -248,5 +206,4 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
 }
