@@ -96,22 +96,24 @@ fun RegisterScreen(
     var userWeight by remember { mutableStateOf("") }
 
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-    val days = (1..31).toList()
-    val months = listOf("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
     val years = (currentYear - 100..currentYear).toList().reversed()
+
+    //val months = listOf("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
+    val months = (1 .. 12).toList()
+    val days = (1..31).toList()
 
     var selectedDay by remember { mutableStateOf<Int?>(null) }
     var selectedMonth by remember { mutableStateOf<String?>(null) }
     var selectedYear by remember { mutableStateOf<Int?>(null) }
 
     var selectedGender by remember { mutableStateOf<String?>(null) }
-    val genders = listOf("Masculino", "Femenino", "Otro")
+    val genders = listOf("Masculino", "Femenino")
 
     var selectedActivityLevel by remember { mutableStateOf<String?>(null) }
-    val activityLevels = listOf("Nada", "Bajo", "Moderado", "Alto")
+    val activityLevels = listOf("Sedentario", "Ligero", "Moderado", "Activo", "Muy Activo")
 
     var selectedObjective by remember { mutableStateOf<String?>(null) }
-    val objectives = listOf("Perder peso", "Ganar músculo", "Mantener peso", "Mejorar salud")
+    val objectives = listOf("Perder peso", "Mantener peso", "Ganar músculo")
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -242,7 +244,7 @@ fun RegisterScreen(
                 SimpleTextField(
                     value = userName,
                     onValueChange = { userName = it },
-                    label = "Nombre",
+                    label = "Nombre(s)",
                     isError = fieldErrors.contains("name"),
                     textColor = SecondaryColor,
                     borderColor = BorderColor
@@ -280,7 +282,7 @@ fun RegisterScreen(
                             selectedValue = selectedDay?.toString() ?: "",
                             onValueSelected = { selectedDay = it.toInt() },
                             label = "Día",
-                            options = days.map { it.toString() },
+                            options = days.map { it.toString().padStart(2, '0') },
                             isError = fieldErrors.contains("day"),
                             textColor = SecondaryColor,
                             borderColor = BorderColor,
@@ -292,11 +294,11 @@ fun RegisterScreen(
                             selectedValue = selectedMonth ?: "",
                             onValueSelected = { selectedMonth = it },
                             label = "Mes",
-                            options = months,
+                            options = months.map { it.toString().padStart(2, '0')},
                             isError = fieldErrors.contains("month"),
                             textColor = SecondaryColor,
                             borderColor = BorderColor,
-                            labelFontSize = 12.sp // Ajusta el tamaño de la fuente para el label
+                            labelFontSize = 11.sp // Ajusta el tamaño de la fuente para el label
                         )
                     }
                     Box(modifier = Modifier.weight(1.5f)) {
@@ -453,7 +455,7 @@ fun RegisterScreen(
                 onClick = {
                     if (validateFields()) {
                         isProcessing = true
-                        val fechaNacimiento = "${selectedDay} ${selectedMonth}, ${selectedYear}"
+                        val fechaNacimiento = "${selectedYear}, ${selectedMonth}, ${selectedDay} "
 
                         // 1. Intentar registrar el usuario con Firebase Auth
                         auth.createUserWithEmailAndPassword(email, password)
