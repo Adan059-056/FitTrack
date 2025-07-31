@@ -59,7 +59,7 @@ fun WorkoutCard(workout: Workout,onClick:()->Unit)
             "drawable", context.packageName)
     }
     ConstraintLayout (modifier = Modifier
-        .size(200.dp)
+        .size(220.dp)
         .clip(RoundedCornerShape(10.dp))
         .background(colorResource(R.color.darkBlue))
         .clickable { onClick()}

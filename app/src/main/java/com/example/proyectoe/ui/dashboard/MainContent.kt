@@ -12,7 +12,7 @@ import com.example.proyectoe.data.model.Workout
 import com.example.proyectoe.ui.dashboard.components.SearchBar
 import com.example.proyectoe.ui.dashboard.components.OtherWorkoutsHeader
 import com.example.proyectoe.ui.dashboard.components.Header
-import com.example.proyectoe.ui.dashboard.components.BannerCard
+import com.example.proyectoe.ui.dashboard.components.BannerClickleable
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -104,7 +104,7 @@ fun MainContent(
             //SearchBar()
             UserResume(currentSteps = steps.toInt(),distanceKm = distance) // se pasan los pasos xd
             Spacer(Modifier.height(16.dp))
-            BannerCard()
+            BannerClickleable()
             Spacer(Modifier.height(16.dp))
             OtherWorkoutsHeader()
             Spacer(Modifier.height(16.dp))
