@@ -2,11 +2,11 @@ package com.example.proyectoe.ui.Profile
 
 import androidx.lifecycle.viewModelScope
 import com.example.proyectoe.data.model.User
+import com.example.proyectoe.data.model.CalculadoraGET
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import android.net.Uri
@@ -14,11 +14,16 @@ import android.net.Uri
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.time.LocalDate // Importa LocalDate
+import java.time.format.DateTimeParseException // Importa DateTimeParseException
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import android.util.Log // Asegúrate de tener esta importación para Logcat
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val TAG = "ProfileViewModel" // Añade un TAG para este ViewModel
 
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
@@ -34,6 +39,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     private val _profilePhotoUri = MutableStateFlow<Uri?>(null)
     val profilePhotoUri: StateFlow<Uri?> = _profilePhotoUri
+
+    private val _getCalculado = MutableStateFlow<Double?>(null)
+    val getCalculado: StateFlow<Double?> = _getCalculado
 
     private val appContext = application.applicationContext
 
@@ -58,6 +66,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         _isLoading.value = true
         _errorMessage.value = null
         _isSuccess.value = null
+        _getCalculado.value = null
 
         viewModelScope.launch {
             try {
@@ -68,6 +77,15 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         val userData = documentSnapshot.toObject(User::class.java)
                         _user.value = userData
                         _editableUser.value = userData?.copy()
+
+                        // Recalcula el GET después de cargar y potencialmente corregir la fecha
+                        userData?.let { user ->
+                            // Asegúrate de que la fecha esté en el formato correcto antes de pasarla
+                            val formattedUser = user.copy(fechaNacimiento = formatFechaNacimientoForCalculation(user.fechaNacimiento))
+                            _getCalculado.value = CalculadoraGET.calcularGET(formattedUser)
+                        } ?: run {
+                            _getCalculado.value = null
+                        }
 
                         val storedPhotoFileName = userData?.photoFileName
                         if (storedPhotoFileName != null && storedPhotoFileName.isNotEmpty()) {
@@ -85,21 +103,25 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         _user.value = null
                         _editableUser.value = null
                         _profilePhotoUri.value = null
+                        _getCalculado.value = null
                     }
                 } else {
                     _errorMessage.value = "Usuario no autenticado."
                     _user.value = null
                     _editableUser.value = null
                     _profilePhotoUri.value = null
+                    _getCalculado.value = null
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error al cargar el perfil: ${e.message}"
-                println("Error al cargar el perfil: ${e.message}")
+                Log.e(TAG, "Error al cargar el perfil: ${e.message}", e)
+                _getCalculado.value = null
             } finally {
                 _isLoading.value = false
             }
         }
     }
+
 
     fun toggleEditMode() {
         _isEditing.value = !_isEditing.value
@@ -128,41 +150,43 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updateEditableName(name: String) {
-        _editableUser.update { it?.copy(nombre = name) }
+        _editableUser.value = _editableUser.value?.copy(nombre = name)
     }
 
     fun updateEditableApellidos(apellidos: String) {
-        _editableUser.update { it?.copy(apellidos = apellidos) }
+        _editableUser.value = _editableUser.value?.copy(apellidos = apellidos)
     }
 
     fun updateEditableFechaNacimiento(fecha: String) {
-        _editableUser.update { it?.copy(fechaNacimiento = fecha) }
+        _editableUser.value = _editableUser.value?.copy(fechaNacimiento = fecha)
     }
 
     fun updateEditablePeso(peso: String) {
-        _editableUser.update { it?.copy(peso = peso) }
+        _editableUser.value = _editableUser.value?.copy(peso = peso)
     }
 
     fun updateEditableAltura(altura: String) {
-        _editableUser.update { it?.copy(altura = altura) }
+        _editableUser.value = _editableUser.value?.copy(altura = altura)
     }
 
     fun updateEditableGenero(genero: String) {
-        _editableUser.update { it?.copy(genero = genero) }
+        _editableUser.value = _editableUser.value?.copy(genero = genero)
     }
 
     fun updateEditableActividad(actividad: String) {
-        _editableUser.update { it?.copy(actividad = actividad) }
+        _editableUser.value = _editableUser.value?.copy(actividad = actividad)
     }
 
     fun updateEditableObjetivo(objetivo: String) {
-        _editableUser.update { it?.copy(objetivo = objetivo) }
+        _editableUser.value = _editableUser.value?.copy(objetivo = objetivo)
     }
 
     fun saveProfileAndPhotoChanges() {
         _isLoading.value = true
         _errorMessage.value = null
         _isSuccess.value = null
+        _getCalculado.value = null
+
         viewModelScope.launch {
             val userId = auth.currentUser?.uid
             val userToSave = _editableUser.value
@@ -195,10 +219,21 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     _profilePhotoUri.value = Uri.fromFile(destinationFile)
                 }
 
+                // --- INICIO DE LA CORRECCIÓN DE LA FECHA ---
+                val fechaNacimientoOriginal = userToSave.fechaNacimiento
+                val fechaNacimientoFormateada = formatFechaNacimientoForSaving(fechaNacimientoOriginal)
+
+                if (fechaNacimientoFormateada == null) {
+                    _errorMessage.value = "Formato de fecha de nacimiento inválido. Use AAAA-MM-DD o AAAA, MM, DD."
+                    _isLoading.value = false
+                    return@launch
+                }
+                // --- FIN DE LA CORRECCIÓN DE LA FECHA ---
+
                 val updates: Map<String, Any?> = mapOf(
                     "nombre" to userToSave.nombre,
                     "apellidos" to userToSave.apellidos,
-                    "fechaNacimiento" to userToSave.fechaNacimiento,
+                    "fechaNacimiento" to fechaNacimientoFormateada, // Guarda la fecha formateada
                     "peso" to userToSave.peso,
                     "altura" to userToSave.altura,
                     "genero" to userToSave.genero,
@@ -210,16 +245,23 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
                 db.collection("usuarios").document(userId).update(updates).await()
 
-                _user.value = userToSave.copy(photoFileName = photoFileNameToSave)
+                // Actualiza _user con los datos guardados (incluyendo la fecha formateada)
+                _user.value = userToSave.copy(photoFileName = photoFileNameToSave, fechaNacimiento = fechaNacimientoFormateada)
+
+                // Recalcula el GET con el usuario actualizado y la fecha corregida
+                _user.value?.let { user ->
+                    _getCalculado.value = CalculadoraGET.calcularGET(user)
+                }
+
                 _isEditing.value = false
-                _isSuccess.value = "Perfil actualizado con éxito (localmente)."
+                _isSuccess.value = "Perfil actualizado con éxito."
 
             } catch (e: IOException) {
                 _errorMessage.value = "Error al guardar la foto localmente: ${e.message}"
-                println("Error al guardar la foto localmente: ${e.message}")
+                Log.e(TAG, "Error al guardar la foto localmente: ${e.message}", e)
             } catch (e: Exception) {
                 _errorMessage.value = "Error al guardar los cambios en Firestore: ${e.message}"
-                println("Error al guardar los cambios en Firestore: ${e.message}")
+                Log.e(TAG, "Error al guardar los cambios en Firestore: ${e.message}", e)
             } finally {
                 _isLoading.value = false
             }
@@ -228,5 +270,51 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun updateProfilePhotoUri(uri: Uri?) {
         _profilePhotoUri.value = uri
+    }
+
+    // Función auxiliar para formatear la fecha para guardar en Firestore
+    private fun formatFechaNacimientoForSaving(dateString: String): String? {
+        return try {
+            // Intenta parsear el formato "AAAA, MM, DD"
+            val parts = dateString.split(",").map { it.trim() }
+            if (parts.size == 3) {
+                val year = parts[0].padStart(4, '0')
+                val month = parts[1].padStart(2, '0')
+                val day = parts[2].padStart(2, '0')
+                return "$year-$month-$day"
+            }
+            // Si no es el formato "AAAA, MM, DD", intenta parsear como "AAAA-MM-DD"
+            LocalDate.parse(dateString).toString()
+        } catch (e: DateTimeParseException) {
+            Log.e(TAG, "Error al parsear fecha para guardar: $dateString", e)
+            null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error inesperado al formatear fecha para guardar: $dateString", e)
+            null
+        }
+    }
+
+    // Función auxiliar para formatear la fecha para el cálculo (si es diferente al formato de guardado)
+    // En este caso, como CalculadoraGET espera "AAAA-MM-DD", esta función es la misma que la de guardado.
+    private fun formatFechaNacimientoForCalculation(dateString: String): String {
+        return try {
+            // Intenta parsear el formato "AAAA, MM, DD"
+            val parts = dateString.split(",").map { it.trim() }
+            if (parts.size == 3) {
+                val year = parts[0].padStart(4, '0')
+                val month = parts[1].padStart(2, '0')
+                val day = parts[2].padStart(2, '0')
+                return "$year-$month-$day"
+            }
+            // Si no es el formato "AAAA, MM, DD", asume que ya está en "AAAA-MM-DD" o intenta parsearlo
+            LocalDate.parse(dateString).toString() // Esto validará y devolverá el formato estándar
+        } catch (e: DateTimeParseException) {
+            Log.e(TAG, "Error al parsear fecha para cálculo: $dateString. Devolviendo cadena original.", e)
+            // Si no se puede parsear, devuelve la cadena original. CalculadoraGET lo manejará como error.
+            dateString
+        } catch (e: Exception) {
+            Log.e(TAG, "Error inesperado al formatear fecha para cálculo: $dateString", e)
+            dateString
+        }
     }
 }

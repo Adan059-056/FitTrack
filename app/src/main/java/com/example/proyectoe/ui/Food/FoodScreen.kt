@@ -32,6 +32,48 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyectoe.data.model.FoodItem
 import com.example.proyectoe.ui.theme.BackgroundColor
+import com.example.proyectoe.data.model.CalculadoraGET
+import com.example.proyectoe.ui.Profile.ProfileViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+
+import androidx.compose.ui.draw.clip
+
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+
+
+import androidx.lifecycle.viewmodel.compose.viewModel
+
+import com.example.proyectoe.ui.theme.BackgroundColor
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Text
+
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 // colres
 val darkBlueBlack = Color(0xFF0A0E21)
@@ -47,7 +89,8 @@ fun FoodScreen(
     onBack: () -> Unit = {},
     onAddFood: () -> Unit = {},
     onEditFood: (String) -> Unit = {},
-    foodViewModel: FoodViewModel = viewModel()
+    foodViewModel: FoodViewModel = viewModel() ,
+    profileViewModel: ProfileViewModel = viewModel()
 ) {
     val consumedFoodEntries by foodViewModel.consumedFoodEntries.collectAsState()
     val isLoading by foodViewModel.isLoading.collectAsState()
@@ -55,6 +98,7 @@ fun FoodScreen(
     val searchQuery by foodViewModel.searchQuery.collectAsState()
     val searchResults by foodViewModel.searchResults.collectAsState()
     val dailyTotals by foodViewModel.dailyTotals.collectAsState()
+    val getCalculado by profileViewModel.getCalculado.collectAsState()
 
     var showAddFoodToMealDialog by remember { mutableStateOf(false) }
     var selectedFoodItemForMeal by remember { mutableStateOf<FoodItem?>(null) }
@@ -101,7 +145,7 @@ fun FoodScreen(
                 .padding(horizontal = 16.dp)
         ) {
             item {
-                CalorieSummaryCard(dailyTotals.totalCalories.toInt())
+                CalorieSummaryCard(dailyTotals.totalCalories.toInt(), getCalculado = getCalculado)
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
@@ -216,7 +260,7 @@ fun FoodScreen(
 }
 
 @Composable
-fun CalorieSummaryCard(totalCalories: Int) {
+fun CalorieSummaryCard(totalCalories: Int, getCalculado: Double?) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -230,9 +274,25 @@ fun CalorieSummaryCard(totalCalories: Int) {
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            NutrientCircle(title = "Consumidas", value = totalCalories.toString(), total = "2000", color = orangePrimary)
-            NutrientCircle(title = "Restantes", value = (2000 - totalCalories).coerceAtLeast(0).toString(), total = "", color = Color(0xFF4CAF50))
-            NutrientCircle(title = "Quemadas", value = "0", total = "", color = orangeSecondary)
+            NutrientCircle(
+                title = "Consumidas",
+                value = totalCalories.toString(),
+                total = if (getCalculado != null) "${"%.2f".format(getCalculado)} kcal/día" else "N/A",
+                color = orangePrimary
+            )
+            NutrientCircle(
+                title = "Restantes",
+                value = if (getCalculado != null) (getCalculado - totalCalories).coerceAtLeast(0.0).toInt().toString() else "N/A",
+                total = "",
+                color = Color(0xFF4CAF50
+                )
+            )
+            NutrientCircle(
+                title = "Quemadas",
+                value = "0",
+                total = "",
+                color = orangeSecondary
+            )
         }
     }
 }

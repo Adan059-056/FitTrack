@@ -1,10 +1,12 @@
 package com.example.proyectoe.data.model
 
-//import com.example.proyectoe.data.model.User
 import java.time.LocalDate
 import java.time.Period
+import android.util.Log
 
 object CalculadoraGET {
+    private val TAG = "CalculadoraGET"
+
     private val factoresActividad = mapOf(
         "Sedentario" to 1.2,
         "Ligero" to 1.375,
@@ -14,9 +16,14 @@ object CalculadoraGET {
     )
 
     private fun calcularEdad(fechaNacimientoString: String): Int {
-        val fechaNacimiento = LocalDate.parse(fechaNacimientoString)
-        val fechaActual = LocalDate.now()
-        return Period.between(fechaNacimiento, fechaActual).years
+        return try {
+            val fechaNacimiento = LocalDate.parse(fechaNacimientoString)
+            val fechaActual = LocalDate.now()
+            Period.between(fechaNacimiento, fechaActual).years
+        } catch (e: Exception) {
+            Log.e(TAG, "Error al parsear fecha de nacimiento: $fechaNacimientoString", e)
+            0
+        }
     }
 
     private fun calcularGER(peso: Double, altura: Double, edad: Int, genero: String): Double {
@@ -33,20 +40,32 @@ object CalculadoraGET {
         val genero = user.genero
         val actividad = user.actividad
 
-        if (peso == null || altura == null) {
-            println("Error: Peso o altura no son números válidos para ${user.nombre}.")
+        Log.d(TAG, "DEBUG: User details - Nombre: ${user.nombre}, Peso: ${user.peso}, Altura: ${user.altura}, Género: $genero, Actividad: $actividad, Fecha Nacimiento: ${user.fechaNacimiento}")
+
+        if (peso == null || altura == null || peso <= 0 || altura <= 0) {
+            Log.e(TAG, "ERROR: Peso ($peso) o altura ($altura) no son números válidos o son cero/negativos para ${user.nombre}.")
             return 0.0
         }
 
         val edad = calcularEdad(user.fechaNacimiento)
+        if (edad <= 0) {
+            Log.e(TAG, "ERROR: Edad calculada ($edad) no válida para ${user.nombre}.")
+            return 0.0
+        }
+        Log.d(TAG, "DEBUG: Edad calculada: $edad")
+
         val ger = calcularGER(peso, altura, edad, genero)
+        Log.d(TAG, "DEBUG: GER calculado: $ger")
 
         val factorActividad = factoresActividad[actividad]
         if (factorActividad == null) {
-            println("Error: Nivel de actividad '${actividad}' no reconocido para ${user.nombre}.")
+            Log.e(TAG, "ERROR: Nivel de actividad '${actividad}' no reconocido para ${user.nombre}. Factores esperados: ${factoresActividad.keys}")
             return 0.0
         }
+        Log.d(TAG, "DEBUG: Factor de actividad: $factorActividad")
 
-        return ger * factorActividad
+        val getResult = ger * factorActividad
+        Log.d(TAG, "DEBUG: GET final calculado: $getResult")
+        return getResult
     }
 }
