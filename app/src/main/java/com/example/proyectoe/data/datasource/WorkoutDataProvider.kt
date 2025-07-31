@@ -6,32 +6,27 @@ import com.example.proyectoe.data.model.Workout
 object WorkoutDataProvider {
 
     fun getData(): List<Workout> = listOf(
-        Workout("Running", "Desc...", "pic_1", 160, "9 min", getLessions1()),
-        Workout("Stretching", "Desc...", "pic_2", 230, "85 min", getLessions2()),
-        Workout("Yoga", "Desc...", "pic_3", 180, "65 min", getLessions3())
+        Workout("Running", "Ejercicios básicos para movilizarte y adaptar tu cuerpo para una vida más activa", "running", 160, "41 min", getLessions1()),
+        Workout("Calentamiento", "Estiramiento tiene como objetivo principal mejorar la flexibilidad muscular y la movilidad de las articulaciones", "pic_2", 230, "30 min", getLessions2()),
+        Workout("Yoga", "Una práctica milenaria que integra cuerpo, mente y respiración donde cada postura (asana) activa distintas partes del cuerpo y que combina movimiento con respiración consciente, lo que calma el sistema nervioso.", "pic_3", 180, "69 min", getLessions3())
     )
 
     fun getLessions1() = listOf(
-        Lession("Lesson 1", "03:46", "HBPMvFkpNgE", "pic_1_1"),
-        Lession("Lesson 2", "03:41", "K6I24WgiiPw", "pic_1_2"),
-        Lession("Lesson 3", "01:57", "Zc08v4YYOeA", "pic_1_3"),
-        Lession("Lesson 3", "01:57", "Zc08v4YYOeA", "pic_1_3"),
-        Lession("Lesson 3", "01:57", "Zc08v4YYOeA", "pic_1_3"),
-        Lession("Lesson 3", "01:57", "Zc08v4YYOeA", "pic_1_3"),
-        Lession("Lesson 3", "01:57", "Zc08v4YYOeA", "pic_1_3"),
-        Lession("Lesson 3", "01:57", "Zc08v4YYOeA", "pic_1_3")
+        Lession("Sesion 1", "06:59", "X01SZlaeARQ", "pic_1_1"),
+        Lession("Sesion 2", "13:07", "kLl14nXbD3c", "pic_1_2"),
+        Lession("Sesion 3", "21:34", "Y_DymGhU-oo", "pic_1_3"),
     )
     fun getLessions2() = listOf(
-        Lession("Lesson 1", "20:23", "L3eImBAXT7I", "pic_3_1"),
-        Lession("Lesson 2", "18:27", "47ExgzO7FlU", "pic_3_2"),
-        Lession("Lesson 3", "32:25", "OmLx8tmaQ-4", "pic_3_3"),
-        Lession("Lesson 4", "07:52", "w86EalEoFRY", "pic_3_4")
+        Lession("Sesion 1", "12:11", "YnePZyRGcBE", "pic_2_1"),
+        Lession("Sesion 2", "11:32", "0GPm3qbmju0", "pic_2_2"),
+        Lession("Sesion 3", "04:49", "XabAVprmsPE", "pic_2_3"),
+        Lession("Sesion 4", "03:29", "5aAkskctYGY", "pic_2_4")
     )
     fun getLessions3() = listOf(
-        Lession("Lesson 1", "23:00", "v7AYKMP6rOE", "pic_3_1"),
-        Lession("Lesson 2", "27:00", "Eml2xnoLpYE", "pic_3_2"),
-        Lession("Lesson 3", "25:00", "v7SN-d4qXx0", "pic_3_3"),
-        Lession("Lesson 4", "21:00", "LqXZ628YNj4", "pic_3_4")
+        Lession("Sesion 1", "38:12", "shvcnWXkDiY", "pic_3_1"),
+        Lession("Sesion 2", "13:28", "qMzk83G5JgY", "pic_3_2"),
+        Lession("Sesion 3", "07:25", "sETvbV0oobI", "pic_3_3"),
+        Lession("Sesion 4", "11:10", "FU4OTllcOXM", "pic_3_4")
     )
 
 }

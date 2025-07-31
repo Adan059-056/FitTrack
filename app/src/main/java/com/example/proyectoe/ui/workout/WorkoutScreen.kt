@@ -14,7 +14,6 @@ import com.example.proyectoe.data.model.Workout
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.proyectoe.ui.workout.componets.WorkoutHeader
-import com.example.proyectoe.ui.workout.componets.StartWorkoutButton
 
 @Composable
 fun WorkoutScreen(
@@ -35,6 +34,5 @@ fun WorkoutScreen(
                 ExerciseList(workout.lessions)
             }
         }
-        StartWorkoutButton (onStart)
     }
 }

@@ -21,7 +21,7 @@ import com.example.proyectoe.R
 fun WorkoutInfo(workout: Workout){
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
     {
-        Text(text="Intermediate",
+        Text(text="Intermedio",
             color = colorResource(R.color.orange),
             fontSize = 16.sp
             )
@@ -37,7 +37,7 @@ fun WorkoutInfo(workout: Workout){
             ){
             Text(workout.durationAll,color = Color.White, fontSize = 14.sp)
             Text(".", color = colorResource(R.color.orange), fontSize = 14.sp)
-            Text("${workout.lessions.size} Exercise", color = Color.White, fontSize = 14.sp)
+            Text("${workout.lessions.size} Ejercicios", color = Color.White, fontSize = 14.sp)
             Text(".", color = colorResource(R.color.orange), fontSize = 14.sp)
             Text("${workout.kcal} Kcal",color = Color.White, fontSize = 14.sp)
         }
@@ -48,7 +48,7 @@ fun WorkoutInfo(workout: Workout){
     }
     Spacer(modifier = Modifier.height(16.dp))
     Text(
-        text = "Exercise",
+        text = "Ejercicios",
         color = Color.White,
         fontSize = 18.sp
     )

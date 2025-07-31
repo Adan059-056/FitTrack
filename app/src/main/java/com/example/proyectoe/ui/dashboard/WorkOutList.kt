@@ -96,7 +96,7 @@ fun WorkoutCard(workout: Workout,onClick:()->Unit)
         ){
             Text(text = workout.durationAll, color = Color.White, fontSize = 12.sp)
             Text(text = " . ", color = colorResource(R.color.orange))
-            Text(text = "${workout.lessions.size} Exercise", color = Color.White, fontSize = 12.sp)
+            Text(text = "${workout.lessions.size} Ejercicios", color = Color.White, fontSize = 12.sp)
             Text(text = " . ", color = colorResource(R.color.orange))
             Text(text = "${workout.kcal} kcal", color = Color.White, fontSize = 12.sp);
         }
