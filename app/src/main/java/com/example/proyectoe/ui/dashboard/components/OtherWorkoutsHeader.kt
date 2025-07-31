@@ -26,11 +26,6 @@ fun OtherWorkoutsHeader() {
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp
         )
-        Text(
-            text = "Ver Mas",
-            color = colorResource(R.color.orange),
 
-
-        )
     }
 }

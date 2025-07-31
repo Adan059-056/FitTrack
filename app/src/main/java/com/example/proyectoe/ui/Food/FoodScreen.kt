@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyectoe.data.model.FoodItem
+import com.example.proyectoe.ui.theme.BackgroundColor
 
 // colres
 val darkBlueBlack = Color(0xFF0A0E21)
@@ -581,11 +582,12 @@ fun AddFoodToMealDialog(
                     )
                     ExposedDropdownMenu(
                         expanded = expandedDropdown,
-                        onDismissRequest = { expandedDropdown = false }
+                        onDismissRequest = { expandedDropdown = false },
+                        modifier = Modifier.background(darkBlueBlack)
                     ) {
                         mealTypes.forEach { type ->
                             DropdownMenuItem(
-                                text = { Text(type, color = textColor) },
+                                text = { Text(type, color = orangePrimary) },
                                 onClick = {
                                     selectedMealType = type
                                     expandedDropdown = false

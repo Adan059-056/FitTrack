@@ -74,6 +74,7 @@ import androidx.compose.material3.TextFieldDefaults
 
 import androidx.lifecycle.ViewModelProvider
 import android.app.Application
+import androidx.compose.material.icons.filled.Logout
 import androidx.lifecycle.viewmodel.CreationExtras
 
 
@@ -167,7 +168,7 @@ fun ProfileScreen(
                     }
                     IconButton(onClick = onLogout) {
                         Icon(
-                            Icons.Default.ExitToApp,
+                            Icons.Default.Logout,
                             contentDescription = "Cerrar Sesión",
                             tint = Color.White
                         )
