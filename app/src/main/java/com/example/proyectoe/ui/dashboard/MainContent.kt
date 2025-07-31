@@ -89,26 +89,6 @@ fun MainContent(
     val distance by dashboardViewModel.distanceKm.observeAsState(0f)
     val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
 
-
-
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                // Inicia el contador de pasos cuando el Composable está activo
-                dashboardViewModel.startStepCounting()
-            } else if (event == Lifecycle.Event.ON_PAUSE) {
-                // Detiene el contador de pasos cuando el Composable se pausa
-                dashboardViewModel.stopStepCounting()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-            dashboardViewModel.stopStepCounting()
-        }
-    }
-
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally

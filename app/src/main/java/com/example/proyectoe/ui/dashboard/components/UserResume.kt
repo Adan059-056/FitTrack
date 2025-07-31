@@ -154,7 +154,7 @@ fun UserResume(currentSteps: Int, distanceKm: Float) {
             .fillMaxWidth(0.9f),
             //.padding(horizontal = 16.dp),
            // .background(CardColor),
-        horizontalArrangement = Arrangement.SpaceBetween, // Pushes cards to edges of the row, maximizing space between them
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         MiniStatCard(
