@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 
 
@@ -568,6 +570,11 @@ fun AddFoodToMealDialog(
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth(),
+                        textStyle = TextStyle(
+                            color = orangePrimary, // Color del texto en orangePrimary
+                            fontSize = 16.sp
+                        ),
+
 //                        colors = TextFieldDefaults.colors(
 //                            focusedTextColor = textColor,
 //                            unfocusedTextColor = textColor,
@@ -605,6 +612,10 @@ fun AddFoodToMealDialog(
                     label = { Text("Cantidad (unidades)", color = textColor.copy(alpha = 0.7f)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(
+                        color = orangePrimary, // Color del texto en orangePrimary
+                        fontSize = 16.sp
+                    ),
 //                    colors = TextFieldDefaults.colors(
 //                        focusedTextColor = textColor,
 //                        unfocusedTextColor = textColor,
