@@ -54,34 +54,25 @@ import com.example.proyectoe.R
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
-
+import androidx.compose.material3.DatePickerDefaults
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
-
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
-
 import coil.compose.rememberAsyncImagePainter
-
 import android.os.Build
 import androidx.core.content.ContextCompat
-
 import androidx.compose.material3.TextFieldDefaults
-
 import androidx.lifecycle.ViewModelProvider
 import android.app.Application
 import androidx.lifecycle.viewmodel.CreationExtras
 import java.util.TimeZone
-
 import androidx.lifecycle.ViewModel
-
-// --- CAMBIOS CLAVE EN IMPORTACIONES ---
-import androidx.compose.runtime.remember // Importar remember
-import androidx.compose.runtime.mutableStateOf // Importar mutableStateOf
-
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -89,7 +80,6 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.TextButton
-
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -550,20 +540,26 @@ fun PersonalInfoSection(
             }
 
             val showDatePickerDialog = remember { mutableStateOf(false) }
-            val dateFormatter = remember {
+            val displayDateFormatter = remember {
                 val format = SimpleDateFormat("dd MMMM yyyy", Locale("es", "ES"))
+                format.timeZone = TimeZone.getTimeZone("UTC")
+                format
+            }
+
+            val storageDateFormatter = remember {
+                val format = SimpleDateFormat("yyyy, MM, dd", Locale.US)
                 format.timeZone = TimeZone.getTimeZone("UTC")
                 format
             }
 
             val initialDateMillis = remember(fechaNacimiento) {
                 try {
-                    dateFormatter.parse(fechaNacimiento)?.time
+                    storageDateFormatter.parse(fechaNacimiento)?.time
                 } catch (e: Exception) {
-                    null
+                    System.currentTimeMillis()
                 }
             }
-            val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis ?: System.currentTimeMillis())
+            val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
 
             Row(
                 modifier = Modifier
@@ -575,13 +571,24 @@ fun PersonalInfoSection(
                 Text("Fecha de nacimiento", fontWeight = FontWeight.Medium, color = textColor)
                 if (isEditing) {
                     TextButton(onClick = { showDatePickerDialog.value = true }) {
+                        // Muestra la fecha seleccionada
                         val displayDate = datePickerState.selectedDateMillis?.let { millis ->
-                            dateFormatter.format(Date(millis))
-                        } ?: fechaNacimiento
+                            displayDateFormatter.format(Date(millis))
+                        } ?: "Seleccionar Fecha"
                         Text(displayDate, color = textColor)
                     }
                 } else {
-                    Text(fechaNacimiento, color = textColor.copy(alpha = 0.8f))
+                    // Si no está en modo edición se convierrte al formato de visualización ("dd MMMM yyyy")
+                    val formattedForDisplay = remember(fechaNacimiento) {
+                        try {
+                            val date = storageDateFormatter.parse(fechaNacimiento)
+                            // formato de visualización
+                            date?.let { displayDateFormatter.format(it) } ?: fechaNacimiento
+                        } catch (e: Exception) {
+                            fechaNacimiento
+                        }
+                    }
+                    Text(formattedForDisplay, color = textColor.copy(alpha = 0.8f))
                 }
             }
 
@@ -591,7 +598,7 @@ fun PersonalInfoSection(
                     confirmButton = {
                         TextButton(onClick = {
                             datePickerState.selectedDateMillis?.let { millis ->
-                                onFechaNacimientoChanged(dateFormatter.format(Date(millis)))
+                                onFechaNacimientoChanged(storageDateFormatter.format(Date(millis)))
                             }
                             showDatePickerDialog.value = false
                         }) {
