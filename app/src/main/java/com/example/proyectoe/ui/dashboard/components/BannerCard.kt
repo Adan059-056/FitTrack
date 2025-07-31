@@ -33,7 +33,7 @@ fun BannerClickleable() {
     // Lista de banners con sus videos asociados
     val banners = listOf(
         BannerItem(
-            imageRes = R.drawable.mas,
+            imageRes = R.drawable.unamas,
             youtubeVideoId = "7zsGpJVkZi4" // ID del video de YouTube
         ),
         BannerItem(
@@ -69,7 +69,7 @@ fun BannerClickleable() {
         modifier = Modifier
             .fillMaxWidth()
             .height(200.dp)
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 7.dp)
             .clip(RoundedCornerShape(10.dp))
     ) {
         Crossfade(

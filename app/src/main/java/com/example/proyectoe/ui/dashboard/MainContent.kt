@@ -10,7 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.proyectoe.data.model.Workout
 import com.example.proyectoe.ui.dashboard.components.SearchBar
-import com.example.proyectoe.ui.dashboard.components.OtherWorkoutsHeader
+import com.example.proyectoe.ui.dashboard.components.TextoEjercicio
+import com.example.proyectoe.ui.dashboard.components.TextoMotivacion
 import com.example.proyectoe.ui.dashboard.components.Header
 import com.example.proyectoe.ui.dashboard.components.BannerClickleable
 
@@ -104,11 +105,12 @@ fun MainContent(
             //SearchBar()
             UserResume(currentSteps = steps.toInt(),distanceKm = distance) // se pasan los pasos xd
             Spacer(Modifier.height(16.dp))
+            TextoMotivacion()
+            Spacer(Modifier.height(16.dp))
             BannerClickleable()
             Spacer(Modifier.height(16.dp))
-            OtherWorkoutsHeader()
+            TextoEjercicio()
             Spacer(Modifier.height(16.dp))
-
             WorkOutList(workouts)
             Spacer(Modifier.height(16.dp))
         }
