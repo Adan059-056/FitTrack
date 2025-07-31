@@ -4,9 +4,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.proyectoe.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-//import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import android.net.Uri
@@ -41,11 +41,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         _isSuccess.value = null
     }
 
-    //Estado para el modo de edición
     private val _isEditing = MutableStateFlow(false)
     val isEditing: StateFlow<Boolean> = _isEditing
 
-    //Estado para los datos que se están editando (copia de _user)
     private val _editableUser = MutableStateFlow<User?>(null)
     val editableUser: StateFlow<User?> = _editableUser
 
@@ -69,14 +67,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     if (documentSnapshot.exists()) {
                         val userData = documentSnapshot.toObject(User::class.java)
                         _user.value = userData
-                        _editableUser.value = userData?.copy() // Inicializa editableUser con una copia de los datos actuales
+                        _editableUser.value = userData?.copy()
 
-//                        val storedPhotoUrl = userData?.photoUrl
-//                        if (storedPhotoUrl != null && storedPhotoUrl.isNotEmpty()) {
-//                            _profilePhotoUri.value = Uri.parse(storedPhotoUrl)
-//                        } else {
-//                            _profilePhotoUri.value = null // Asegurar que sea nulo si no hay URL
-//                        }
                         val storedPhotoFileName = userData?.photoFileName
                         if (storedPhotoFileName != null && storedPhotoFileName.isNotEmpty()) {
                             val file = File(appContext.filesDir, storedPhotoFileName)
@@ -109,7 +101,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-
     fun toggleEditMode() {
         _isEditing.value = !_isEditing.value
         _errorMessage.value = null
@@ -117,7 +108,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
         if (_isEditing.value) {
             _editableUser.value = _user.value?.copy()
-            // Al entrar en modo edición reinicia la imagen defecto local a la foto del usuario
             val currentPhotoFileName = _user.value?.photoFileName
             _profilePhotoUri.value = if (currentPhotoFileName != null && currentPhotoFileName.isNotEmpty()) {
                 val file = File(appContext.filesDir, currentPhotoFileName)
@@ -127,7 +117,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             }
         } else {
             _editableUser.value = _user.value?.copy()
-            // Al salir del modo edición sin guardar, vuelve a la foto guardada
             val currentPhotoFileName = _user.value?.photoFileName
             _profilePhotoUri.value = if (currentPhotoFileName != null && currentPhotoFileName.isNotEmpty()) {
                 val file = File(appContext.filesDir, currentPhotoFileName)
@@ -138,40 +127,38 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    //Funciones para actualizar campos individuales en editableUser
     fun updateEditableName(name: String) {
-        _editableUser.value = _editableUser.value?.copy(nombre = name)
+        _editableUser.update { it?.copy(nombre = name) }
     }
 
     fun updateEditableApellidos(apellidos: String) {
-        _editableUser.value = _editableUser.value?.copy(apellidos = apellidos)
+        _editableUser.update { it?.copy(apellidos = apellidos) }
     }
 
     fun updateEditableFechaNacimiento(fecha: String) {
-        _editableUser.value = _editableUser.value?.copy(fechaNacimiento = fecha)
+        _editableUser.update { it?.copy(fechaNacimiento = fecha) }
     }
 
     fun updateEditablePeso(peso: String) {
-        _editableUser.value = _editableUser.value?.copy(peso = peso)
+        _editableUser.update { it?.copy(peso = peso) }
     }
 
     fun updateEditableAltura(altura: String) {
-        _editableUser.value = _editableUser.value?.copy(altura = altura)
+        _editableUser.update { it?.copy(altura = altura) }
     }
 
     fun updateEditableGenero(genero: String) {
-        _editableUser.value = _editableUser.value?.copy(genero = genero)
+        _editableUser.update { it?.copy(genero = genero) }
     }
 
     fun updateEditableActividad(actividad: String) {
-        _editableUser.value = _editableUser.value?.copy(actividad = actividad)
+        _editableUser.update { it?.copy(actividad = actividad) }
     }
 
     fun updateEditableObjetivo(objetivo: String) {
-        _editableUser.value = _editableUser.value?.copy(objetivo = objetivo)
+        _editableUser.update { it?.copy(objetivo = objetivo) }
     }
 
-    //Función para guardar los cambios en Firestore
     fun saveProfileAndPhotoChanges() {
         _isLoading.value = true
         _errorMessage.value = null
@@ -179,7 +166,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             val userId = auth.currentUser?.uid
             val userToSave = _editableUser.value
-            val currentSelectedPhotoUri = _profilePhotoUri.value // foto temporal de la galería
+            val currentSelectedPhotoUri = _profilePhotoUri.value
 
             if (userId == null) {
                 _errorMessage.value = "Usuario no autenticado."
@@ -193,12 +180,11 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             }
 
             try {
-                var photoFileNameToSave: String? = userToSave.photoFileName // Nombre del archivo actual
+                var photoFileNameToSave: String? = userToSave.photoFileName
 
-                // si se eligio foto elige esa y no la defecto
                 if (currentSelectedPhotoUri != null && currentSelectedPhotoUri.scheme == "content") {
                     val newFileName = "profile_photo_${userId}_${System.currentTimeMillis()}.jpg"
-                    val destinationFile = File(appContext.filesDir, newFileName) // <-- Usa appContext
+                    val destinationFile = File(appContext.filesDir, newFileName)
 
                     appContext.contentResolver.openInputStream(currentSelectedPhotoUri)?.use { inputStream ->
                         FileOutputStream(destinationFile).use { outputStream ->
@@ -209,7 +195,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     _profilePhotoUri.value = Uri.fromFile(destinationFile)
                 }
 
-                // Prepara las actualizaciones para Firestore
                 val updates: Map<String, Any?> = mapOf(
                     "nombre" to userToSave.nombre,
                     "apellidos" to userToSave.apellidos,
@@ -220,7 +205,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     "actividad" to userToSave.actividad,
                     "objetivo" to userToSave.objetivo,
                     "email" to userToSave.email,
-                    "photoFileName" to photoFileNameToSave // Guarda el nombre del archivo local
+                    "photoFileName" to photoFileNameToSave
                 )
 
                 db.collection("usuarios").document(userId).update(updates).await()
@@ -240,7 +225,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             }
         }
     }
-
 
     fun updateProfilePhotoUri(uri: Uri?) {
         _profilePhotoUri.value = uri

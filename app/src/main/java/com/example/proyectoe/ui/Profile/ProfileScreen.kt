@@ -21,12 +21,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator // indicador de carga
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,7 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState //observar StateFlow
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,7 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel // para obtener la ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyectoe.R
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
@@ -62,32 +62,46 @@ import android.widget.Toast
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext // Para obtener el Context
+import androidx.compose.ui.platform.LocalContext
 
 import coil.compose.rememberAsyncImagePainter
 
-import android.os.Build // Para Build.VERSION.SDK_INT
+import android.os.Build
 import androidx.core.content.ContextCompat
 
 import androidx.compose.material3.TextFieldDefaults
 
-
 import androidx.lifecycle.ViewModelProvider
 import android.app.Application
-import androidx.compose.material.icons.filled.Logout
 import androidx.lifecycle.viewmodel.CreationExtras
+import java.util.TimeZone
 
+import androidx.lifecycle.ViewModel
 
-import androidx.lifecycle.ViewModel // <-- ¡ASEGÚRATE DE QUE ESTA ESTÉ!
+// --- CAMBIOS CLAVE EN IMPORTACIONES ---
+import androidx.compose.runtime.remember // Importar remember
+import androidx.compose.runtime.mutableStateOf // Importar mutableStateOf
 
-private val SecondaryColor = Color(0xFFFFFFFF)   // Blanco para textos
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.TextButton
+
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+private val SecondaryColor = Color(0xFFFFFFFF)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel = run {
-        val context = LocalContext.current // Obtenemos el Context Composable aquí
-        val application = context.applicationContext as Application // Obtenemos el Application context aquí
+        val context = LocalContext.current
+        val application = context.applicationContext as Application
 
         viewModel(
             factory = object : ViewModelProvider.Factory {
@@ -118,12 +132,10 @@ fun ProfileScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            viewModel.updateProfilePhotoUri(uri) // Actualiza la foto en la ViewModel
-            // viewModel.uploadProfilePhotoAndSaveProfileChanges() //para guardar automaticamente al seleccionar la foto
+            viewModel.updateProfilePhotoUri(uri)
         }
     }
 
-    //permiso para pedir la foto o mas bien abrir la galeria
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -134,7 +146,6 @@ fun ProfileScreen(
         }
     }
 
-    //colores
     val darkBlue = Color(0xFF0A1128)
     val deepBlue = Color(0xFF0F1C3F)
     val navyBlue = Color(0xFF1A2C5C)
@@ -158,7 +169,6 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
-                    // icono de lapiz pra editrar
                     IconButton(onClick = { viewModel.toggleEditMode() }) {
                         Icon(
                             Icons.Default.Edit,
@@ -212,7 +222,6 @@ fun ProfileScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text("Error: $errorMessage", color = Color.Red, fontSize = 18.sp)
-                        //botón para reintentar
                         Button(onClick = { viewModel.loadUserProfile() }) {
                             Text("Reintentar")
                         }
@@ -312,7 +321,7 @@ fun ProfileScreen(
                                 ) {
                                     Text("Guardar Cambios", color = Color.White)
                                 }
-                                Spacer(Modifier.width(16.dp))
+                                Spacer(modifier = Modifier.width(16.dp))
                                 Button(
                                     onClick = { viewModel.toggleEditMode() },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
@@ -382,12 +391,19 @@ fun ProfileHeader(
                     OutlinedTextField(
                         value = userName,
                         onValueChange = onNameChanged,
-                        label = { Text("Nombre Completo") },
+                        label = { Text("Nombre Completo", color = textColor.copy(alpha = 0.7f)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.colors(
-                            focusedTextColor = Color.Red,
-                            unfocusedTextColor = Color.Blue
+                            focusedTextColor = textColor,
+                            unfocusedTextColor = textColor,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = textColor,
+                            unfocusedIndicatorColor = textColor.copy(alpha = 0.5f),
+                            focusedLabelColor = textColor,
+                            unfocusedLabelColor = textColor.copy(alpha = 0.7f),
+                            cursorColor = textColor
                         )
                     )
                 } else {
@@ -399,7 +415,7 @@ fun ProfileHeader(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(4.dp)) // Espacio para el email
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = userEmail,
@@ -428,15 +444,13 @@ fun ProfileHeader(
 
 @Composable
 fun BoxWithCameraIcon(
-    // Recibe el controlador para lanzar la galería
-    onCameraClick: () -> Unit, //Callback para el click en el icono de cámara
+    onCameraClick: () -> Unit,
     profilePhotoUri: Uri?,
     isEditing: Boolean
 ) {
     Box(
         contentAlignment = Alignment.BottomEnd
     ) {
-        // Carga la imagen
         val painter = if (profilePhotoUri != null) {
             rememberAsyncImagePainter(model = profilePhotoUri)
         } else {
@@ -453,25 +467,26 @@ fun BoxWithCameraIcon(
         )
         val deepBlue = Color(0xFF0F1C3F)
         if(isEditing){
-        IconButton(
-            onClick = onCameraClick,
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(deepBlue, CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.Default.CameraAlt,
-                contentDescription = "Cambiar foto",
-                tint = Color.White,
+            IconButton(
+                onClick = onCameraClick,
                 modifier = Modifier
-                    .size(24.dp)
-            )
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(deepBlue, CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = "Cambiar foto",
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(24.dp)
+                )
+            }
         }
     }
 }
-    }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonalInfoSection(
     cardColor: Color = MaterialTheme.colorScheme.surface,
@@ -484,7 +499,7 @@ fun PersonalInfoSection(
     objetivo: String,
     apellidos: String,
     isEditing: Boolean,
-    onFechaNacimientoChanged: (String) -> Unit, // Callbacks para cada campos
+    onFechaNacimientoChanged: (String) -> Unit,
     onGeneroChanged: (String) -> Unit,
     onEstaturaChanged: (String) -> Unit,
     onPesoChanged: (String) -> Unit,
@@ -492,6 +507,8 @@ fun PersonalInfoSection(
     onObjetivoChanged: (String) -> Unit,
     onApellidosChanged: (String) -> Unit
 ) {
+    val deepBlue = Color(0xFF0F1C3F)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -509,51 +526,100 @@ fun PersonalInfoSection(
                 color = Color.White,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-//ss
+
             if (isEditing) {
                 OutlinedTextField(
                     value = apellidos,
                     onValueChange = onApellidosChanged,
-                    label = { Text("Apellidos") },
+                    label = { Text("Apellidos", color = textColor.copy(alpha = 0.7f)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-
-                    //AQUI ES DONDE se cambia el color de texto cuando se edita el textField
-
                     colors = TextFieldDefaults.colors(
-                        focusedTextColor = Color.Red,
-                        unfocusedTextColor = Color.Blue
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = textColor,
+                        unfocusedIndicatorColor = textColor.copy(alpha = 0.5f),
+                        focusedLabelColor = textColor,
+                        unfocusedLabelColor = textColor.copy(alpha = 0.7f),
+                        cursorColor = textColor
                     )
-
-
                 )
-
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
+            val showDatePickerDialog = remember { mutableStateOf(false) }
+            val dateFormatter = remember {
+                val format = SimpleDateFormat("dd MMMM yyyy", Locale("es", "ES"))
+                format.timeZone = TimeZone.getTimeZone("UTC")
+                format
+            }
 
-            InfoRowEditable(
-                label = "Fecha de nacimiento",
-                value = fechaNacimiento,
-                textColor = textColor,
-                isEditing = isEditing,
-                onValueChange = onFechaNacimientoChanged
-            )
-            val deepBlue = Color(0xFF0F1C3F)
-            Divider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = deepBlue.copy(alpha = 0.5f)
-            )
-            InfoRowEditable(
+            val initialDateMillis = remember(fechaNacimiento) {
+                try {
+                    dateFormatter.parse(fechaNacimiento)?.time
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis ?: System.currentTimeMillis())
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Fecha de nacimiento", fontWeight = FontWeight.Medium, color = textColor)
+                if (isEditing) {
+                    TextButton(onClick = { showDatePickerDialog.value = true }) {
+                        val displayDate = datePickerState.selectedDateMillis?.let { millis ->
+                            dateFormatter.format(Date(millis))
+                        } ?: fechaNacimiento
+                        Text(displayDate, color = textColor)
+                    }
+                } else {
+                    Text(fechaNacimiento, color = textColor.copy(alpha = 0.8f))
+                }
+            }
+
+            if (showDatePickerDialog.value) {
+                DatePickerDialog(
+                    onDismissRequest = { showDatePickerDialog.value = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                onFechaNacimientoChanged(dateFormatter.format(Date(millis)))
+                            }
+                            showDatePickerDialog.value = false
+                        }) {
+                            Text("OK", color = textColor)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDatePickerDialog.value = false }) {
+                            Text("Cancelar", color = textColor)
+                        }
+                    },
+                ) {
+                    DatePicker(state = datePickerState)
+                }
+            }
+            Divider(modifier = Modifier.padding(vertical = 8.dp), color = deepBlue.copy(alpha = 0.5f))
+
+            val generos = listOf("Masculino", "Femenino", "Otro")
+            DropdownInfoRow(
                 label = "Sexo",
-                value = genero,
-                textColor = textColor,
+                selectedValue = genero,
+                options = generos,
                 isEditing = isEditing,
-                onValueChange = onGeneroChanged
+                onValueSelected = onGeneroChanged,
+                textColor = textColor
             )
-            Divider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = deepBlue.copy(alpha = 0.5f)
-            )
+            Divider(modifier = Modifier.padding(vertical = 8.dp), color = deepBlue.copy(alpha = 0.5f))
+
             InfoRowEditable(
                 label = "Estatura",
                 value = estatura,
@@ -562,10 +628,7 @@ fun PersonalInfoSection(
                 onValueChange = onEstaturaChanged,
                 suffix = " cm"
             )
-            Divider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = deepBlue.copy(alpha = 0.5f)
-            )
+            Divider(modifier = Modifier.padding(vertical = 8.dp), color = deepBlue.copy(alpha = 0.5f))
             InfoRowEditable(
                 label = "Peso",
                 value = peso,
@@ -574,36 +637,104 @@ fun PersonalInfoSection(
                 onValueChange = onPesoChanged,
                 suffix = " kg"
             )
-            Divider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = deepBlue.copy(alpha = 0.5f)
-            )
-            InfoRowEditable(
+            Divider(modifier = Modifier.padding(vertical = 8.dp), color = deepBlue.copy(alpha = 0.5f))
+
+            val nivelesActividad = listOf("Sedentario", "Ligero", "Moderado", "Activo", "Muy Activo")
+            DropdownInfoRow(
                 label = "Nivel de Actividad",
-                value = actividad,
-                textColor = textColor,
+                selectedValue = actividad,
+                options = nivelesActividad,
                 isEditing = isEditing,
-                onValueChange = onActividadChanged
+                onValueSelected = onActividadChanged,
+                textColor = textColor
             )
-            Divider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = deepBlue.copy(alpha = 0.5f)
-            )
-            InfoRowEditable(
+            Divider(modifier = Modifier.padding(vertical = 8.dp), color = deepBlue.copy(alpha = 0.5f))
+
+            val objetivos = listOf("Perder peso", "Mantener peso", "Ganar músculo")
+            DropdownInfoRow(
                 label = "Objetivo Principal",
-                value = objetivo,
-                textColor = textColor,
+                selectedValue = objetivo,
+                options = objetivos,
                 isEditing = isEditing,
-                onValueChange = onObjetivoChanged
+                onValueSelected = onObjetivoChanged,
+                textColor = textColor
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
         }
     }
 }
 
-// Composable para manejar el modo de visualización/edición de una fila de información
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownInfoRow(
+    label: String,
+    selectedValue: String,
+    options: List<String>,
+    isEditing: Boolean,
+    onValueSelected: (String) -> Unit,
+    textColor: Color
+) {
+    val expanded = remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, fontWeight = FontWeight.Medium, color = textColor)
+        if (isEditing) {
+            ExposedDropdownMenuBox(
+                expanded = expanded.value,
+                onExpandedChange = { expanded.value = !expanded.value },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
+            ) {
+                OutlinedTextField(
+                    value = selectedValue,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Seleccionar", color = textColor.copy(alpha = 0.7f)) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded.value) },
+                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = textColor,
+                        unfocusedIndicatorColor = textColor.copy(alpha = 0.5f),
+                        focusedLabelColor = textColor,
+                        unfocusedLabelColor = textColor.copy(alpha = 0.7f),
+                        cursorColor = textColor
+                    )
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded.value,
+                    onDismissRequest = { expanded.value = false },
+                    modifier = Modifier.background(Color.DarkGray)
+                ) {
+                    options.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option, color = Color.White) },
+                            onClick = {
+                                onValueSelected(option)
+                                expanded.value = false
+                            }
+                        )
+                    }
+                }
+            }
+        } else {
+            Text(selectedValue, color = textColor.copy(alpha = 0.8f))
+        }
+    }
+}
+
 @Composable
 fun InfoRowEditable(
     label: String,
@@ -630,14 +761,20 @@ fun InfoRowEditable(
                     .padding(start = 8.dp),
                 singleLine = true,
                 colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.Red,
-                    unfocusedTextColor = Color.Blue
+                    focusedTextColor = textColor,
+                    unfocusedTextColor = textColor,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = textColor,
+                    unfocusedIndicatorColor = textColor.copy(alpha = 0.5f),
+                    focusedLabelColor = textColor,
+                    unfocusedLabelColor = textColor.copy(alpha = 0.7f),
+                    cursorColor = textColor
                 ),
                 trailingIcon = if (suffix.isNotBlank()) {
                     { Text(suffix, color = textColor.copy(alpha = 0.8f)) }
                 } else null
             )
-
         } else {
             Text(value, color = textColor.copy(alpha = 0.8f))
         }
