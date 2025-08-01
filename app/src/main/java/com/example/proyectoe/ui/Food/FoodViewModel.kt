@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import com.example.proyectoe.data.repository.StepCounterRepository
 
 data class ConsumedFoodEntry(
     var id: String = "",
@@ -33,7 +34,7 @@ data class ConsumedFoodEntry(
 )
 
 
-class FoodViewModel : ViewModel() {
+class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : ViewModel() {
 
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
@@ -60,11 +61,22 @@ class FoodViewModel : ViewModel() {
     private val _allCatalogFoodItems = MutableStateFlow<List<FoodItem>>(emptyList())
     private val _currentDay = MutableStateFlow(getCurrentDate())
 
+    private val _burnedCalories = MutableStateFlow(0)
+    val burnedCalories: StateFlow<Int> = _burnedCalories.asStateFlow()
+
     init {
         Log.d("FoodViewModelLifecycle", "FoodViewModel init called.")
         fetchFoodItemsCatalog()
         observeSearchAndCatalogChanges()
         startListeningForConsumedFoodEntries()
+
+        viewModelScope.launch {
+            stepCounterRepository.currentDailySteps.collect { steps ->
+                // Usamos 0.04 como una estimación simple de calorías por paso
+                val calories = (steps * 0.04).toInt()
+                _burnedCalories.value = calories
+            }
+        }
 
         viewModelScope.launch {
             _currentDay.collect { date ->

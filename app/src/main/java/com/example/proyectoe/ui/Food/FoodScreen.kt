@@ -74,6 +74,11 @@ import androidx.compose.material3.Text
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.example.proyectoe.MyApplication
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.example.proyectoe.data.repository.StepCounterRepository
 
 // colres
 val darkBlueBlack = Color(0xFF0A0E21)
@@ -89,7 +94,7 @@ fun FoodScreen(
     onBack: () -> Unit = {},
     onAddFood: () -> Unit = {},
     onEditFood: (String) -> Unit = {},
-    foodViewModel: FoodViewModel = viewModel() ,
+    foodViewModel: FoodViewModel = provideFoodViewModel(),
     profileViewModel: ProfileViewModel = viewModel()
 ) {
     val consumedFoodEntries by foodViewModel.consumedFoodEntries.collectAsState()
@@ -99,7 +104,7 @@ fun FoodScreen(
     val searchResults by foodViewModel.searchResults.collectAsState()
     val dailyTotals by foodViewModel.dailyTotals.collectAsState()
     val getCalculado by profileViewModel.getCalculado.collectAsState()
-
+    val burnedCalories by foodViewModel.burnedCalories.collectAsState()
     var showAddFoodToMealDialog by remember { mutableStateOf(false) }
     var selectedFoodItemForMeal by remember { mutableStateOf<FoodItem?>(null) }
 
@@ -145,7 +150,7 @@ fun FoodScreen(
                 .padding(horizontal = 16.dp)
         ) {
             item {
-                CalorieSummaryCard(dailyTotals.totalCalories.toInt(), getCalculado = getCalculado)
+                CalorieSummaryCard(dailyTotals.totalCalories.toInt(), getCalculado = getCalculado, burnedCalories = burnedCalories)
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
@@ -260,7 +265,7 @@ fun FoodScreen(
 }
 
 @Composable
-fun CalorieSummaryCard(totalCalories: Int, getCalculado: Double?) {
+fun CalorieSummaryCard(totalCalories: Int, getCalculado: Double?, burnedCalories: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -289,7 +294,7 @@ fun CalorieSummaryCard(totalCalories: Int, getCalculado: Double?) {
             )
             NutrientCircle(
                 title = "Quemadas",
-                value = "0",
+                value = burnedCalories.toString(),
                 total = "",
                 color = orangeSecondary
             )
@@ -598,6 +603,26 @@ fun FoodItemCatalogRow(food: FoodItem, onAddClick: (FoodItem) -> Unit, onEditCli
         }
     }
 }
+
+@Composable
+fun provideFoodViewModel(): FoodViewModel {
+    val context = LocalContext.current
+    val application = context.applicationContext as MyApplication
+    val stepCounterRepository = application.stepCounterRepository
+
+    return viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(FoodViewModel::class.java)) {
+                    @Suppress("UNCHECKED_CAST")
+                    return FoodViewModel(stepCounterRepository) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
+            }
+        }
+    )
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
