@@ -29,15 +29,14 @@ import androidx.compose.runtime.LaunchedEffect
 import com.example.proyectoe.ui.Profile.ProfileViewModel
 import com.example.proyectoe.ui.dashboard.components.UserResume
 import androidx.compose.foundation.layout.fillMaxSize
-import com.example.proyectoe.ui.dashboard.components.UserResume
 import androidx.compose.ui.Alignment
-//import com.example.proyectoe.ui.dashboard.components.miniStatCard
 import com.example.proyectoe.ui.dashboard.DashboardViewModel
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun MainContent(
@@ -60,7 +59,7 @@ fun MainContent(
         )
     },
 
-    dashboardViewModel: DashboardViewModel = run {//metemos o inyectamos el viewmodel del dahsbord
+    dashboardViewModel: DashboardViewModel = run {
         val context = LocalContext.current
         val application = context.applicationContext as Application
 
@@ -78,15 +77,23 @@ fun MainContent(
     }
 
 ) {
-
     val user by profileViewModel.user.collectAsState()
     val profilePhotoUri by profileViewModel.profilePhotoUri.collectAsState()
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
+    // Este LaunchedEffect se ejecuta una vez para cargar el perfil inicial.
     LaunchedEffect(Unit) {
         profileViewModel.loadUserProfile()
     }
 
-    val steps by dashboardViewModel.currentSteps.observeAsState(0f)
+    // Este LaunchedEffect reacciona a los cambios de usuario para cargar los pasos.
+    LaunchedEffect(key1 = currentUserId) {
+        if (currentUserId != null) {
+            dashboardViewModel.loadStepsAndStartSavingForUser(currentUserId)
+        }
+    }
+
+    val steps by dashboardViewModel.currentSteps.observeAsState(0)
     val distance by dashboardViewModel.distanceKm.observeAsState(0f)
     val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
 
@@ -102,8 +109,7 @@ fun MainContent(
                 userName = user?.nombre ?: "Usuario",
                 profilePhotoUri = profilePhotoUri
             )
-            //SearchBar()
-            UserResume(currentSteps = steps.toInt(),distanceKm = distance) // se pasan los pasos xd
+            UserResume(currentSteps = steps, distanceKm = distance)
             Spacer(Modifier.height(16.dp))
             TextoMotivacion()
             Spacer(Modifier.height(16.dp))

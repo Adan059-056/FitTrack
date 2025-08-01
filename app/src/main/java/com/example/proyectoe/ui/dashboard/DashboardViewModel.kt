@@ -4,22 +4,26 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.proyectoe.data.datasource.local.sensor.ManejoContadorPasos
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.example.proyectoe.MyApplication
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
-    //PARA EL CONTADOR DE PASOS
 
+    private val auth = FirebaseAuth.getInstance()
+    private val db = FirebaseFirestore.getInstance()
     private val stepCounterRepository = (application as MyApplication).stepCounterRepository
+
+    private var saveStepsJob: Job? = null
 
     private val _currentSteps = MutableLiveData(0)
     val currentSteps: LiveData<Int> = _currentSteps
-
-    private val manejoContadorPasos = ManejoContadorPasos(application)
 
     val distanceKm: LiveData<Float> = currentSteps.map { steps ->
         val strideLengthMeters = 0.76f
@@ -27,7 +31,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         val distanceKm = distanceMeters / 1000f
         String.format("%.2f", distanceKm).toFloat()
     }
-    // objetivo diari de pasos
+
     val dailyStepGoal = 10000f
 
     val stepProgressPercentage: LiveData<Float> = currentSteps.map { steps ->
@@ -39,24 +43,46 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         if (remaining < 0) 0f else remaining
     }
 
-    init {
-        _currentSteps.value = stepCounterRepository.currentDailySteps.value
-        viewModelScope.launch {
-            stepCounterRepository.currentDailySteps.collectLatest { steps ->
-                // Actualiza el LiveData cuando el StateFlow del repositorio emite un nuevo valor.
-                _currentSteps.postValue(steps)
-                println("DashboardViewModel: Pasos actualizados desde repositorio: $steps")
-            }
-        }
-    }
+    fun loadStepsAndStartSavingForUser(userId: String) {
+        println("DashboardViewModel: Cargando pasos para el usuario: $userId")
 
-    fun resetDailySteps() {
-        stepCounterRepository.resetDailySteps()
-        println("DashboardViewModel: Solicitado reinicio de pasos diarios.")
+        _currentSteps.value = 0
+        saveStepsJob?.cancel()
+
+        db.collection("usuarios").document(userId)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    println("Error al escuchar cambios en pasos del usuario: $e")
+                    return@addSnapshotListener
+                }
+                val fetchedSteps = snapshot?.getLong("pasosDiarios")?.toInt() ?: 0
+                if (_currentSteps.value != fetchedSteps) {
+                    _currentSteps.postValue(fetchedSteps)
+                }
+            }
+
+        saveStepsJob = viewModelScope.launch {
+            stepCounterRepository.currentDailySteps
+                .debounce(5000L)
+                .collectLatest { steps ->
+                    val currentUser = auth.currentUser
+                    if (currentUser?.uid == userId) {
+                        db.collection("usuarios").document(userId)
+                            .update("pasosDiarios", steps)
+                            .addOnSuccessListener {
+                                println("Pasos guardados exitosamente en Firestore: $steps")
+                            }
+                            .addOnFailureListener { e ->
+                                println("Error al guardar pasos en Firestore: $e")
+                            }
+                    }
+                }
+        }
     }
 
     override fun onCleared() {
         super.onCleared()
+        saveStepsJob?.cancel()
         println("DashboardViewModel: onCleared - ViewModel destruido.")
     }
 }
