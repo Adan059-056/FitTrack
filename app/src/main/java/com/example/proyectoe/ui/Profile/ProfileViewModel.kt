@@ -43,6 +43,30 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val _getCalculado = MutableStateFlow<Double?>(null)
     val getCalculado: StateFlow<Double?> = _getCalculado
 
+    private val _carbsTarget = MutableStateFlow<Float?>(null)
+    val carbsTarget: StateFlow<Float?> = _carbsTarget
+
+    private val _proteinTarget = MutableStateFlow<Float?>(null)
+    val proteinTarget: StateFlow<Float?> = _proteinTarget
+
+    private val _fatTarget = MutableStateFlow<Float?>(null)
+    val fatTarget: StateFlow<Float?> = _fatTarget
+
+    private val _breakfastTarget = MutableStateFlow<Int?>(null)
+    val breakfastTarget: StateFlow<Int?> = _breakfastTarget
+
+    private val _lunchTarget = MutableStateFlow<Int?>(null)
+    val lunchTarget: StateFlow<Int?> = _lunchTarget
+
+    private val _dinnerTarget = MutableStateFlow<Int?>(null)
+    val dinnerTarget: StateFlow<Int?> = _dinnerTarget
+
+    private val _snacksTarget = MutableStateFlow<Int?>(null)
+    val snacksTarget: StateFlow<Int?> = _snacksTarget
+
+
+
+
     private val appContext = application.applicationContext
 
     fun clearSuccessMessage() {
@@ -67,6 +91,13 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         _errorMessage.value = null
         _isSuccess.value = null
         _getCalculado.value = null
+        _carbsTarget.value = null
+        _proteinTarget.value = null
+        _fatTarget.value = null
+        _breakfastTarget.value = null
+        _lunchTarget.value = null
+        _dinnerTarget.value = null
+        _snacksTarget.value = null
 
         viewModelScope.launch {
             try {
@@ -82,10 +113,29 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         userData?.let { user ->
                             // Asegúrate de que la fecha esté en el formato correcto antes de pasarla
                             val formattedUser = user.copy(fechaNacimiento = formatFechaNacimientoForCalculation(user.fechaNacimiento))
-                            _getCalculado.value = CalculadoraGET.calcularGET(formattedUser)
+                            val getResult = CalculadoraGET.calcularGET(formattedUser)
+                            _getCalculado.value = getResult
+                            //_getCalculado.value = CalculadoraGET.calcularGET(formattedUser)
+
+
+                            if (getResult > 0) {
+                                calculateMacronutrientTargets(getResult)
+                                calculateMealTargets(getResult)
+                            } else {
+                                // Si el GET es inválido, reinicia los objetivos
+                                _carbsTarget.value = null
+                                _proteinTarget.value = null
+                                _fatTarget.value = null
+                                _breakfastTarget.value = null
+                                _lunchTarget.value = null
+                                _dinnerTarget.value = null
+                                _snacksTarget.value = null
+                            }
                         } ?: run {
                             _getCalculado.value = null
                         }
+
+
 
                         val storedPhotoFileName = userData?.photoFileName
                         if (storedPhotoFileName != null && storedPhotoFileName.isNotEmpty()) {
@@ -186,6 +236,13 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         _errorMessage.value = null
         _isSuccess.value = null
         _getCalculado.value = null
+        _carbsTarget.value = null
+        _proteinTarget.value = null
+        _fatTarget.value = null
+        _breakfastTarget.value = null
+        _lunchTarget.value = null
+        _dinnerTarget.value = null
+        _snacksTarget.value = null
 
         viewModelScope.launch {
             val userId = auth.currentUser?.uid
@@ -250,7 +307,15 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
                 // Recalcula el GET con el usuario actualizado y la fecha corregida
                 _user.value?.let { user ->
-                    _getCalculado.value = CalculadoraGET.calcularGET(user)
+                    val getResult = CalculadoraGET.calcularGET(user)
+                    _getCalculado.value = getResult
+
+                    if (getResult > 0) {
+                        calculateMacronutrientTargets(getResult)
+
+                        calculateMealTargets(getResult)
+                    }
+
                 }
 
                 _isEditing.value = false
@@ -316,5 +381,30 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             Log.e(TAG, "Error inesperado al formatear fecha para cálculo: $dateString", e)
             dateString
         }
+    }
+private fun calculateMacronutrientTargets(get: Double) {
+    // Asumiendo una distribución estándar:
+    // 40% de Carbohidratos, 30% de Proteínas, 30% de Grasas
+    val proteinCalories = get * 0.30
+    val fatCalories = get * 0.30
+    val carbsCalories = get * 0.40
+
+    // 1 gramo de proteína = 4 kcal
+    // 1 gramo de grasa = 9 kcal
+    // 1 gramo de carbohidratos = 4 kcal
+    _proteinTarget.value = (proteinCalories / 4.0).toFloat()
+    _fatTarget.value = (fatCalories / 9.0).toFloat()
+    _carbsTarget.value = (carbsCalories / 4.0).toFloat()
+
+    Log.d(TAG, "Targets calculados: Carbs=${_carbsTarget.value}, Prot=${_proteinTarget.value}, Fat=${_fatTarget.value}")
+}
+    private fun calculateMealTargets(get: Double) {
+        // Distribución estándar de calorías por comida
+        _breakfastTarget.value = (get * 0.25).toInt()
+        _lunchTarget.value = (get * 0.35).toInt()
+        _dinnerTarget.value = (get * 0.30).toInt()
+        _snacksTarget.value = (get * 0.10).toInt()
+
+        Log.d(TAG, "Targets de comidas calculados: Desayuno=${_breakfastTarget.value}, Almuerzo=${_lunchTarget.value}, Cena=${_dinnerTarget.value}, Snacks=${_snacksTarget.value}")
     }
 }

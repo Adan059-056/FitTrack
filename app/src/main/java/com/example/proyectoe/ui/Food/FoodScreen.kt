@@ -1,5 +1,6 @@
 package com.example.proyectoe.ui.Food
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,58 +28,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
-
-
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyectoe.data.model.FoodItem
-import com.example.proyectoe.ui.theme.BackgroundColor
-import com.example.proyectoe.data.model.CalculadoraGET
+
 import com.example.proyectoe.ui.Profile.ProfileViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import androidx.compose.foundation.layout.*
+
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
-
-import androidx.compose.ui.draw.clip
-
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
-
-
-import androidx.lifecycle.viewmodel.compose.viewModel
-
-import com.example.proyectoe.ui.theme.BackgroundColor
-
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
-
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import com.example.proyectoe.MyApplication
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.proyectoe.data.repository.StepCounterRepository
+
 
 // colres
 val darkBlueBlack = Color(0xFF0A0E21)
@@ -105,8 +69,18 @@ fun FoodScreen(
     val dailyTotals by foodViewModel.dailyTotals.collectAsState()
     val getCalculado by profileViewModel.getCalculado.collectAsState()
     val burnedCalories by foodViewModel.burnedCalories.collectAsState()
+    val carbsTarget by profileViewModel.carbsTarget.collectAsState()
+    val proteinTarget by profileViewModel.proteinTarget.collectAsState()
+    val fatTarget by profileViewModel.fatTarget.collectAsState()
+
+    val breakfastTarget by profileViewModel.breakfastTarget.collectAsState()
+    val lunchTarget by profileViewModel.lunchTarget.collectAsState()
+    val dinnerTarget by profileViewModel.dinnerTarget.collectAsState()
+    val snacksTarget by profileViewModel.snacksTarget.collectAsState()
+
     var showAddFoodToMealDialog by remember { mutableStateOf(false) }
     var selectedFoodItemForMeal by remember { mutableStateOf<FoodItem?>(null) }
+    var selectedMealTypeForDialog by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         foodViewModel.fetchFoodItemsCatalog()
@@ -155,7 +129,14 @@ fun FoodScreen(
             }
 
             item {
-                MacronutrientsCard(dailyTotals.totalProtein, dailyTotals.totalFat, dailyTotals.totalCarbohydrates)
+                MacronutrientsCard(
+                    dailyTotals.totalProtein,
+                    dailyTotals.totalFat,
+                    dailyTotals.totalCarbohydrates,
+                    carbsTarget = carbsTarget,
+                    proteinTarget = proteinTarget,
+                    fatTarget = fatTarget
+                )
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
@@ -243,7 +224,15 @@ fun FoodScreen(
                 MealBreakdownSection(
                     consumedFoodEntries = consumedFoodEntries,
                     onEditFoodEntry = { entryId -> },
-                    onAddFoodToMeal = { mealType -> }
+                    onAddFoodToMeal = { mealType ->
+
+                        selectedMealTypeForDialog = mealType
+                        showAddFoodToMealDialog = true
+                    },
+                    breakfastTarget = breakfastTarget,
+                    lunchTarget = lunchTarget,
+                    dinnerTarget = dinnerTarget,
+                    snacksTarget = snacksTarget
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -253,19 +242,31 @@ fun FoodScreen(
     if (showAddFoodToMealDialog && selectedFoodItemForMeal != null) {
         AddFoodToMealDialog(
             foodItem = selectedFoodItemForMeal!!,
-            onDismiss = { showAddFoodToMealDialog = false },
+            initialMealType = selectedMealTypeForDialog,
+            onDismiss = {
+                showAddFoodToMealDialog = false
+                selectedFoodItemForMeal = null
+                selectedMealTypeForDialog = null
+            },
             onAdd = { food, mealType, quantity ->
                 foodViewModel.addConsumedFoodEntry(food, mealType, quantity) { success ->
                     showAddFoodToMealDialog = false
                     selectedFoodItemForMeal = null
+                    selectedMealTypeForDialog = null
                 }
             }
         )
+    } else if (showAddFoodToMealDialog && selectedFoodItemForMeal == null && selectedMealTypeForDialog != null) {
+        // En este caso, el usuario intentó añadir desde la sección de comidas.
+        // Podrías mostrar un mensaje de error o simplemente no hacer nada hasta que seleccione un alimento.
+        // Por ahora, cerramos el diálogo para evitar estados inconsistentes.
+        showAddFoodToMealDialog = false
     }
+
 }
 
 @Composable
-fun CalorieSummaryCard(totalCalories: Int, getCalculado: Double?, burnedCalories: Int) {
+fun CalorieSummaryCard(totalCalories: Int, getCalculado: Double?, burnedCalories: Int) { // Cambiado a Double?
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -289,21 +290,24 @@ fun CalorieSummaryCard(totalCalories: Int, getCalculado: Double?, burnedCalories
                 title = "Restantes",
                 value = if (getCalculado != null) (getCalculado - totalCalories).coerceAtLeast(0.0).toInt().toString() else "N/A",
                 total = "",
-                color = Color(0xFF4CAF50
-                )
+                color = Color(0xFF4CAF50)
             )
             NutrientCircle(
                 title = "Quemadas",
                 value = burnedCalories.toString(),
                 total = "",
-                color = orangeSecondary
-            )
+                color = orangeSecondary)
         }
     }
 }
 
 @Composable
-fun NutrientCircle(title: String, value: String, total: String, color: Color) {
+fun NutrientCircle(
+    title: String,
+    value: String,
+    total: String,
+    color: Color
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -341,11 +345,23 @@ fun NutrientCircle(title: String, value: String, total: String, color: Color) {
 }
 
 @Composable
-fun MacronutrientsCard(protein: Float, fat: Float, carbohydrates: Float) {
+fun MacronutrientsCard(
+    protein: Float,
+    fat: Float,
+    carbohydrates: Float,
+    carbsTarget: Float?,
+    proteinTarget: Float?,
+    fatTarget: Float?
+) {
+    // Si los objetivos son nulos, usamos valores predeterminados
+    val targetCarbs = carbsTarget ?: 206f
+    val targetProtein = proteinTarget ?: 82f
+    val targetFat = fatTarget ?: 54f
+
     val nutrients = listOf(
-        Nutrient("Carbohidratos", "${carbohydrates.toInt()} g", "206 g", carbohydrates / 206f),
-        Nutrient("Proteínas", "${protein.toInt()} g", "82 g", protein / 82f),
-        Nutrient("Grasas", "${fat.toInt()} g", "54 g", fat / 54f)
+        Nutrient("Carbohidratos", "${carbohydrates.toInt()} g", "${targetCarbs.toInt()} g", carbohydrates / targetCarbs),
+        Nutrient("Proteínas", "${protein.toInt()} g", "${targetProtein.toInt()} g", protein / targetProtein),
+        Nutrient("Grasas", "${fat.toInt()} g", "${targetFat.toInt()} g", fat / targetFat)
     )
 
     Card(
@@ -378,7 +394,6 @@ fun MacronutrientsCard(protein: Float, fat: Float, carbohydrates: Float) {
         }
     }
 }
-
 @Composable
 fun MacronutrientRow(nutrient: Nutrient) {
     Column {
@@ -423,7 +438,11 @@ data class Nutrient(val name: String, val consumed: String, val total: String, v
 fun MealBreakdownSection(
     consumedFoodEntries: List<ConsumedFoodEntry>,
     onEditFoodEntry: (String) -> Unit,
-    onAddFoodToMeal: (String) -> Unit
+    onAddFoodToMeal: (String) -> Unit,
+    breakfastTarget: Int?,
+    lunchTarget: Int?,
+    dinnerTarget: Int?,
+    snacksTarget: Int?
 ) {
     val mealsMap = consumedFoodEntries.groupBy { it.mealType }
 
@@ -440,16 +459,16 @@ fun MealBreakdownSection(
                 val foodsInMeal = mealsMap[mealType] ?: emptyList()
                 val caloriesInMeal = foodsInMeal.sumOf { it.calories.toDouble() }.toInt()
                 val totalMealCalories = when (mealType) {
-                    "Desayuno" -> "506"
-                    "Almuerzo" -> "674"
-                    "Cena" -> "421"
-                    "Snacks" -> "84"
-                    else -> "0"
+                    "Desayuno" -> breakfastTarget ?: 0
+                    "Almuerzo" -> lunchTarget ?: 0
+                    "Cena" -> dinnerTarget ?: 0
+                    "Snacks" -> snacksTarget ?: 0
+                    else -> 0
                 }
 
                 MealRow(
                     mealName = mealType,
-                    currentCalories = caloriesInMeal.toString(),
+                    currentCalories = caloriesInMeal,
                     totalCaloriesTarget = totalMealCalories,
                     foodsForMeal = foodsInMeal,
                     onFoodClick = { entryId -> onEditFoodEntry(entryId) },
@@ -476,14 +495,14 @@ fun MealBreakdownSection(
 @Composable
 fun MealRow(
     mealName: String,
-    currentCalories: String,
-    totalCaloriesTarget: String,
+    currentCalories: Int,
+    totalCaloriesTarget: Int,
     foodsForMeal: List<ConsumedFoodEntry>,
     onFoodClick: (String) -> Unit,
     onAddFoodToMeal: (String) -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-
+    val progress = if (totalCaloriesTarget > 0) currentCalories.toFloat() / totalCaloriesTarget.toFloat() else 0f
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -511,7 +530,15 @@ fun MealRow(
                 color = orangePrimary
             )
         }
-
+        // Barra de progreso visual
+        LinearProgressIndicator(
+            progress = progress.coerceIn(0f, 1f),
+            color = orangePrimary,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            trackColor = textColor.copy(alpha = 0.1f)
+        )
         if (expanded) {
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -538,24 +565,27 @@ fun MealRow(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-
-//            OutlinedButton(
-//                onClick = { onAddFoodToMeal(mealName) },
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp),
-//                colors = ButtonDefaults.outlinedButtonColors(
-//                    contentColor = orangePrimary
-//                ),
-//                border = BorderStroke(1.dp, orangePrimary),
-//                shape = RoundedCornerShape(8.dp)
-//            ) {
-//                Text("Añadir alimento al $mealName")
-//            }
+            OutlinedButton(
+                onClick = { onAddFoodToMeal(mealName) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = orangePrimary
+                ),
+                border = BorderStroke(1.dp, orangePrimary),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Añadir alimento al $mealName")
+            }
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
-}
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+
 
 @Composable
 fun FoodItemCatalogRow(food: FoodItem, onAddClick: (FoodItem) -> Unit, onEditClick: (String) -> Unit) {
@@ -624,16 +654,18 @@ fun provideFoodViewModel(): FoodViewModel {
 }
 
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddFoodToMealDialog(
     foodItem: FoodItem,
     onDismiss: () -> Unit,
-    onAdd: (FoodItem, String, Float) -> Unit
+    onAdd: (FoodItem, String, Float) -> Unit,
+    initialMealType: String? = null // Nuevo parámetro para el tipo de comida inicial
 ) {
     var quantity by rememberSaveable { mutableStateOf("1") }
     val mealTypes = listOf("Desayuno", "Almuerzo", "Cena", "Snacks")
-    var selectedMealType by rememberSaveable { mutableStateOf(mealTypes[0]) }
+    var selectedMealType by rememberSaveable { mutableStateOf(initialMealType ?: mealTypes[0]) }
     var expandedDropdown by remember { mutableStateOf(false) }
 
     AlertDialog(
