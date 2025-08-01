@@ -78,7 +78,7 @@ fun UserResume(currentSteps: Int, distanceKm: Float) {
             )
 
             //valores de la grafica
-            val dailyStepGoal = 500f // meta de pasos
+            val dailyStepGoal = 10000f // meta de pasos
             val currentStepsFloat = currentSteps.toFloat()
             val completedSteps = if (currentStepsFloat > dailyStepGoal) dailyStepGoal else currentStepsFloat
             val remainingSteps = dailyStepGoal - completedSteps

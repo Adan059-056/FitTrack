@@ -14,7 +14,7 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Inicializamos el repository
+        // Inicializa el repository
         stepCounterRepository.init()
 
         // Iniciamos el segundo plano
@@ -25,4 +25,5 @@ class MyApplication : Application() {
             startService(serviceIntent)
         }
     }
+
 }

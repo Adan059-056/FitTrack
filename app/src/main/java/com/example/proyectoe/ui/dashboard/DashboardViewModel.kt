@@ -22,6 +22,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     private var saveStepsJob: Job? = null
 
+
     private val _currentSteps = MutableLiveData(0)
     val currentSteps: LiveData<Int> = _currentSteps
 
@@ -56,6 +57,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                     return@addSnapshotListener
                 }
                 val fetchedSteps = snapshot?.getLong("pasosDiarios")?.toInt() ?: 0
+
+                stepCounterRepository.syncWithSavedSteps(fetchedSteps)
+
                 if (_currentSteps.value != fetchedSteps) {
                     _currentSteps.postValue(fetchedSteps)
                 }

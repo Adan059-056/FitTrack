@@ -11,11 +11,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-/* es una clase que encapsula la lógica para interactuar directamente con el sensor de pasos
-   del dispositivo y manejar el conteo diario, incluyendo la persistencia de
-   datos con SharedPreferences.
- */
-
 class ManejoContadorPasos(context: Context) : SensorEventListener {
 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -46,14 +41,21 @@ class ManejoContadorPasos(context: Context) : SensorEventListener {
         stepCounterSensor?.let {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
         }
-        onStepCountChanged?.invoke(stepsAccumulatedTodayInMemory)
-        //println("ManejoContadorPasos: Inicia escucha. Pasos actuales cargados: $stepsAccumulatedTodayInMemory")
+        //onStepCountChanged?.invoke(stepsAccumulatedTodayInMemory)
     }
 
     fun stopListening() {
         sensorManager.unregisterListener(this)
         saveState()
         //println("ManejoContadorPasos: Detiene escucha. Estado guardado.")
+    }
+
+    fun syncWithSavedSteps(savedSteps: Int, totalStepsFromSensor: Float) {
+        // Aseguramos que el offset sea el valor del sensor menos los pasos guardados
+        this.dailyStepsOffset = totalStepsFromSensor - savedSteps
+        this.stepsAccumulatedTodayInMemory = savedSteps.toFloat()
+        saveState()
+        println("ManejoContadorPasos: Sincronizado. Pasos cargados: $savedSteps. Nuevo offset: $dailyStepsOffset")
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -65,30 +67,31 @@ class ManejoContadorPasos(context: Context) : SensorEventListener {
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val today = dateFormat.format(calendar.time)
 
-                //Maneja el cambio de día
                 if (lastRecordedDate != today) {
-                    dailyStepsOffset = currentSensorTotalSteps // El offset es el total del sensor en este momento
-                    stepsAccumulatedTodayInMemory = 0f // Reinicia el conteo
+                    dailyStepsOffset = currentSensorTotalSteps
+                    stepsAccumulatedTodayInMemory = 0f
                     lastRecordedDate = today
-                    saveState() // Guardar el nuevo offset y la nueva fecha
-                    println("ManejoContadorPasos: Nuevo día detectado o primera lectura del día. Conteo reiniciado. Offset: $dailyStepsOffset")
-                }
-
-                var currentDailySteps = currentSensorTotalSteps - dailyStepsOffset
-
-                if (currentDailySteps < 0) {
-                    println("ManejoContadorPasos: Sensor probablemente reiniciado. Ajustando offset.")
-                    dailyStepsOffset = currentSensorTotalSteps // El nuevo offset es el valor actual del sensor
-                    currentDailySteps = 0f
                     saveState()
                 }
 
+                if (currentSensorTotalSteps < dailyStepsOffset) {
+                    dailyStepsOffset = currentSensorTotalSteps - stepsAccumulatedTodayInMemory
+                }
+
+                val currentDailySteps = currentSensorTotalSteps - dailyStepsOffset
+
                 stepsAccumulatedTodayInMemory = currentDailySteps
                 onStepCountChanged?.invoke(stepsAccumulatedTodayInMemory)
-                saveState() //guadra los datos para que persistan los pasos
-                println("ManejoContadorPasos: Sensor total: $currentSensorTotalSteps, Offset: $dailyStepsOffset, Pasos Hoy: $stepsAccumulatedTodayInMemory")
+                saveState()
             }
         }
+    }
+
+    fun resetOffsetTo(stepsFromFirestore: Int, totalStepsFromSensor: Float) {
+        this.stepsAccumulatedTodayInMemory = stepsFromFirestore.toFloat()
+        this.dailyStepsOffset = totalStepsFromSensor - stepsFromFirestore.toFloat()
+        saveState()
+        //Log.d("ManejoContadorPasos", "Offset reiniciado para usuario. Pasos Firestore: $stepsFromFirestore, Nuevo Offset: $dailyStepsOffset")
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit

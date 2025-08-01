@@ -30,15 +30,15 @@ class StepCounterService : Service(), SensorEventListener {
         super.onCreate()
         Log.d("StepService", "StepCounterService onCreate")
 
-        // 1. Crear el canal de notificación PRIMERO.
+        // crea el canal de notificación
         createNotificationChannel()
 
-        // 2. INICIAR EL SERVICIO EN PRIMER PLANO INMEDIATAMENTE.
+        // inicia el servicio en primer plano al iniciar
         startForeground(NOTIFICATION_ID, buildNotification(0).build())
         Log.d("StepService", "Service started in foreground.")
 
 
-        // 3. Luego, continuamos con las inicializaciones del servicio.
+        //inicializaciones del servicio.
         stepCounterRepository = (application as MyApplication).stepCounterRepository
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -78,7 +78,7 @@ class StepCounterService : Service(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // No specific implementation needed.
+        // creo no necesita nada
     }
 
     override fun onDestroy() {
