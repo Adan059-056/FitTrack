@@ -124,7 +124,7 @@ fun UserResume(currentSteps: Int, distanceKm: Float) {
 
             legendEntries.add(
                 com.github.mikephil.charting.components.LegendEntry(
-                    "Pasos actuales ${currentSteps}",
+                    "Pasos actuales $currentSteps",
                     Legend.LegendForm.CIRCLE,
                     10f,
                     0f,

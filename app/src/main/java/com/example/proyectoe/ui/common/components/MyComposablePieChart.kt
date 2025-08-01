@@ -9,10 +9,8 @@ import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
-
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.LegendEntry
-
 
 @Composable
 fun MyComposePieChart(
@@ -52,7 +50,7 @@ fun MyComposePieChart(
                 legend.textColor = Color.WHITE
 
                 //permite textos o leyendas personalizadas
-                legend.setCustom(customLegendEntries)
+                //legend.setCustom(customLegendEntries)
 
                 rotationAngle = 0f
                 isRotationEnabled = false
@@ -71,29 +69,26 @@ fun MyComposePieChart(
                 sliceSpace = 2f
                 selectionShift = 0f
             }
-            //para ajustar los valores de la grafica
 
+            //para ajustar los valores de la grafica
             val pieData = PieData(dataSet).apply {//muestra los porcentajes de la grafica
 
                 setValueFormatter(com.github.mikephil.charting.formatter.PercentFormatter(pieChart))
-
-            //para valores enteros:: setValueFormatter(com.github.mikephil.charting.formatter.ValueFormatter())
+                //para valores enteros:: setValueFormatter(com.github.mikephil.charting.formatter.ValueFormatter())
                 setDrawValues(false)
             }
-
-
             //pieData.setValueTextSize(12f)
             //pieData.setValueTextColor(Color.WHITE)
 
             pieChart.data = pieData
 
-
             pieChart.setDrawEntryLabels(false) // No mostrar etiquetas dentro de la gráfica
             pieChart.description.isEnabled = false
             pieChart.legend.isEnabled = true
-
+            pieChart.legend.setCustom(customLegendEntries)
             //pieChart.animateY(500, Easing.EaseInOutQuad) // Animación
-            pieChart.invalidate() // Redibujar el gráfico
+            pieChart.notifyDataSetChanged()
+            pieChart.invalidate() //redibuja la grafica cuando se actualiza el numde pasos
         }
     )
 }
