@@ -547,7 +547,7 @@ fun PersonalInfoSection(
             }
 
             val storageDateFormatter = remember {
-                val format = SimpleDateFormat("yyyy, MM, dd", Locale.US)
+                val format = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                 format.timeZone = TimeZone.getTimeZone("UTC")
                 format
             }

@@ -16,35 +16,32 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.proyectoe.data.repository.StepCounterRepository
 import com.example.proyectoe.ui.dashboard.MainActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class StepCounterService : Service(), SensorEventListener {
 
     private lateinit var sensorManager: SensorManager
     private var stepCounterSensor: Sensor? = null
     private lateinit var stepCounterRepository: StepCounterRepository
-    private var totalSteps = 0
     private val NOTIFICATION_CHANNEL_ID = "step_counter_channel"
     private val NOTIFICATION_ID = 1
 
+    private val serviceJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(serviceJob)
+
     override fun onCreate() {
         super.onCreate()
-        Log.d("StepService", "StepCounterService onCreate")
-
-        // crea el canal de notificación
         createNotificationChannel()
 
-        // inicia el servicio en primer plano al iniciar
-        startForeground(NOTIFICATION_ID, buildNotification(0).build())
-        Log.d("StepService", "Service started in foreground.")
-
-
-        //inicializaciones del servicio.
         stepCounterRepository = (application as MyApplication).stepCounterRepository
-
+        stepCounterRepository.init()
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
-        if (stepCounterSensor == null) {//si no hay sensor se detiene el servicio
+        if (stepCounterSensor == null) {
             Log.e("StepService", "Step counter sensor not available on this device. Stopping service.")
             stopSelf()
             return
@@ -53,14 +50,20 @@ class StepCounterService : Service(), SensorEventListener {
         sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_UI)
         Log.d("StepService", "Sensor listener registered.")
 
-        // actualiza la notificacion a los pasos reales despues de que se inicialice bien
-        updateNotification(stepCounterRepository.currentDailySteps.value)
+        // Lanza el servicio en primer plano con la cantidad de pasos inicial
+        val initialSteps = stepCounterRepository.currentDailySteps.value
+        startForeground(NOTIFICATION_ID, buildNotification(initialSteps).build())
+
+        // Observa los cambios de pasos y actualiza la notificación dinamicamente
+        serviceScope.launch {
+            stepCounterRepository.currentDailySteps.collect { steps ->
+                updateNotification(steps)
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("StepService", "StepCounterService onStartCommand")
-        val currentSteps = stepCounterRepository.currentDailySteps.value
-        updateNotification(currentSteps)
         return START_STICKY
     }
 
@@ -71,20 +74,22 @@ class StepCounterService : Service(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
             val totalSensorSteps = event.values[0].toInt()
+            // El repositorio maneja la lógica para calcular y guardar los pasos
             stepCounterRepository.updateTotalSteps(totalSensorSteps)
-            updateNotification(stepCounterRepository.currentDailySteps.value)
+            // La notificación se actualizará automáticamente a través del flujo
             Log.d("StepService", "Sensor detected: Total steps: $totalSensorSteps, Daily steps: ${stepCounterRepository.currentDailySteps.value}")
         }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // creo no necesita nada
+        // No se usa
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d("StepService", "StepCounterService onDestroy")
         sensorManager.unregisterListener(this)
+        serviceJob.cancel()
     }
 
     private fun createNotificationChannel() {

@@ -57,18 +57,18 @@ fun WorkoutHeader(workout: Workout, onBack:()->Unit={})
         }
 
 
-        IconButton(
-            onClick = {},
-            modifier = Modifier.constrainAs (favRef){
-                top.linkTo(parent.top, margin = 48.dp)
-                end.linkTo(parent.end, margin = 16.dp)
-            }
-        ) {
-            Image(
-                painter = painterResource(R.drawable.fav_icon),
-                contentDescription = null
-            )
-        }
+//        IconButton(
+//            onClick = {},
+//            modifier = Modifier.constrainAs (favRef){
+//                top.linkTo(parent.top, margin = 48.dp)
+//                end.linkTo(parent.end, margin = 16.dp)
+//            }
+//        ) {
+//            Image(
+//                painter = painterResource(R.drawable.fav_icon),
+//                contentDescription = null
+//            )
+//        }
         Box(modifier = Modifier
             .constrainAs (overlayRef){
                 bottom.linkTo(imageRef.bottom)

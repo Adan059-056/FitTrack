@@ -26,10 +26,10 @@ class MyApplication : Application() {
             startService(serviceIntent)
         }
 
-        // Desayuno a las 8:00 AM
+        // Desayuno a las 10:00 AM
         NotificationScheduler.scheduleDailyNotification(
             this,
-            11,
+            10,
             0,
             "¡Es hora del desayuno! Registra tus alimentos.",
             1
@@ -45,8 +45,8 @@ class MyApplication : Application() {
         // Cena a las 6:00 PM
         NotificationScheduler.scheduleDailyNotification(
             this,
-            6,
-            0,
+            22,
+            17,
             "¡Hora de la cena! Registra tus alimentos.",
             3
         )

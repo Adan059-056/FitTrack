@@ -60,9 +60,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.layout.ContentScale
 
 import coil.compose.rememberAsyncImagePainter // Para cargar la imagen
-import androidx.compose.ui.platform.LocalContext // Para obtener el contexto de la app
-import java.io.File // manejo de archivos
-import java.io.FileOutputStream // Para escribir archivos
+import androidx.compose.ui.platform.LocalContext
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 
 
@@ -286,7 +286,7 @@ fun RegisterScreen(
                             isError = fieldErrors.contains("day"),
                             textColor = SecondaryColor,
                             borderColor = BorderColor,
-                            labelFontSize = 12.sp // Ajusta el tamaño de la fuente para el label
+                            labelFontSize = 10.sp // Ajusta el tamaño de la fuente para el label
                         )
                     }
                     Box(modifier = Modifier.weight(1.5f)) {
@@ -298,7 +298,7 @@ fun RegisterScreen(
                             isError = fieldErrors.contains("month"),
                             textColor = SecondaryColor,
                             borderColor = BorderColor,
-                            labelFontSize = 11.sp // Ajusta el tamaño de la fuente para el label
+                            labelFontSize = 10.sp
                         )
                     }
                     Box(modifier = Modifier.weight(1.5f)) {
@@ -310,7 +310,7 @@ fun RegisterScreen(
                             isError = fieldErrors.contains("year"),
                             textColor = SecondaryColor,
                             borderColor = BorderColor,
-                            labelFontSize = 12.sp // Ajusta el tamaño de la fuente para el label
+                            labelFontSize = 10.sp
                         )
                     }
                 }
@@ -455,7 +455,9 @@ fun RegisterScreen(
                 onClick = {
                     if (validateFields()) {
                         isProcessing = true
-                        val fechaNacimiento = "${selectedYear}, ${selectedMonth}, ${selectedDay} "
+                        val formattedMonth = selectedMonth.toString().padStart(2, '0')
+                        val formattedDay = selectedDay.toString().padStart(2, '0')
+                        val fechaNacimiento = "${selectedYear}-${formattedMonth}-${formattedDay}"
 
                         // 1. Intentar registrar el usuario con Firebase Auth
                         auth.createUserWithEmailAndPassword(email, password)
@@ -464,7 +466,7 @@ fun RegisterScreen(
                                     authResult.user?.uid // Obtenemos el UID real del nuevo usuario
                                 if (uid != null) {
                                     var finalPhotoFileName: String? =
-                                        null // <-- ¡Esta variable es clave!
+                                        null
 
                                     // 2. Si hay una URI de foto seleccionada, intentamos guardarla
                                     if (profilePhotoUri != null) { // <-- ¡Este bloque es clave para guardar la foto!

@@ -64,9 +64,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val _snacksTarget = MutableStateFlow<Int?>(null)
     val snacksTarget: StateFlow<Int?> = _snacksTarget
 
-
-
-
     private val appContext = application.applicationContext
 
     fun clearSuccessMessage() {
@@ -109,14 +106,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         _user.value = userData
                         _editableUser.value = userData?.copy()
 
-                        // Recalcula el GET después de cargar y potencialmente corregir la fecha
+                        // Ahora el `User` ya tiene el formato de fecha correcto desde la base de datos
                         userData?.let { user ->
-                            // Asegúrate de que la fecha esté en el formato correcto antes de pasarla
-                            val formattedUser = user.copy(fechaNacimiento = formatFechaNacimientoForCalculation(user.fechaNacimiento))
-                            val getResult = CalculadoraGET.calcularGET(formattedUser)
+                            val getResult = CalculadoraGET.calcularGET(user)
                             _getCalculado.value = getResult
-                            //_getCalculado.value = CalculadoraGET.calcularGET(formattedUser)
-
 
                             if (getResult > 0) {
                                 calculateMacronutrientTargets(getResult)
@@ -134,8 +127,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         } ?: run {
                             _getCalculado.value = null
                         }
-
-
 
                         val storedPhotoFileName = userData?.photoFileName
                         if (storedPhotoFileName != null && storedPhotoFileName.isNotEmpty()) {
@@ -276,21 +267,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     _profilePhotoUri.value = Uri.fromFile(destinationFile)
                 }
 
-                // --- INICIO DE LA CORRECCIÓN DE LA FECHA ---
-                val fechaNacimientoOriginal = userToSave.fechaNacimiento
-                val fechaNacimientoFormateada = formatFechaNacimientoForSaving(fechaNacimientoOriginal)
-
-                if (fechaNacimientoFormateada == null) {
-                    _errorMessage.value = "Formato de fecha de nacimiento inválido. Use AAAA-MM-DD o AAAA, MM, DD."
-                    _isLoading.value = false
-                    return@launch
-                }
-                // --- FIN DE LA CORRECCIÓN DE LA FECHA ---
-
                 val updates: Map<String, Any?> = mapOf(
                     "nombre" to userToSave.nombre,
                     "apellidos" to userToSave.apellidos,
-                    "fechaNacimiento" to fechaNacimientoFormateada, // Guarda la fecha formateada
+                    "fechaNacimiento" to userToSave.fechaNacimiento, // Usa la fecha directamente
                     "peso" to userToSave.peso,
                     "altura" to userToSave.altura,
                     "genero" to userToSave.genero,
@@ -302,20 +282,18 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
                 db.collection("usuarios").document(userId).update(updates).await()
 
-                // Actualiza _user con los datos guardados (incluyendo la fecha formateada)
-                _user.value = userToSave.copy(photoFileName = photoFileNameToSave, fechaNacimiento = fechaNacimientoFormateada)
+                // Actualiza _user con los datos guardados
+                _user.value = userToSave.copy(photoFileName = photoFileNameToSave)
 
-                // Recalcula el GET con el usuario actualizado y la fecha corregida
+                // Recalcula el GET con el usuario actualizado
                 _user.value?.let { user ->
                     val getResult = CalculadoraGET.calcularGET(user)
                     _getCalculado.value = getResult
 
                     if (getResult > 0) {
                         calculateMacronutrientTargets(getResult)
-
                         calculateMealTargets(getResult)
                     }
-
                 }
 
                 _isEditing.value = false
@@ -337,69 +315,19 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         _profilePhotoUri.value = uri
     }
 
-    // Función auxiliar para formatear la fecha para guardar en Firestore
-    private fun formatFechaNacimientoForSaving(dateString: String): String? {
-        return try {
-            // Intenta parsear el formato "AAAA, MM, DD"
-            val parts = dateString.split(",").map { it.trim() }
-            if (parts.size == 3) {
-                val year = parts[0].padStart(4, '0')
-                val month = parts[1].padStart(2, '0')
-                val day = parts[2].padStart(2, '0')
-                return "$year-$month-$day"
-            }
-            // Si no es el formato "AAAA, MM, DD", intenta parsear como "AAAA-MM-DD"
-            LocalDate.parse(dateString).toString()
-        } catch (e: DateTimeParseException) {
-            Log.e(TAG, "Error al parsear fecha para guardar: $dateString", e)
-            null
-        } catch (e: Exception) {
-            Log.e(TAG, "Error inesperado al formatear fecha para guardar: $dateString", e)
-            null
-        }
+    private fun calculateMacronutrientTargets(get: Double) {
+        val proteinCalories = get * 0.30
+        val fatCalories = get * 0.30
+        val carbsCalories = get * 0.40
+
+        _proteinTarget.value = (proteinCalories / 4.0).toFloat()
+        _fatTarget.value = (fatCalories / 9.0).toFloat()
+        _carbsTarget.value = (carbsCalories / 4.0).toFloat()
+
+        Log.d(TAG, "Targets calculados: Carbs=${_carbsTarget.value}, Prot=${_proteinTarget.value}, Fat=${_fatTarget.value}")
     }
 
-    // Función auxiliar para formatear la fecha para el cálculo (si es diferente al formato de guardado)
-    // En este caso, como CalculadoraGET espera "AAAA-MM-DD", esta función es la misma que la de guardado.
-    private fun formatFechaNacimientoForCalculation(dateString: String): String {
-        return try {
-            // Intenta parsear el formato "AAAA, MM, DD"
-            val parts = dateString.split(",").map { it.trim() }
-            if (parts.size == 3) {
-                val year = parts[0].padStart(4, '0')
-                val month = parts[1].padStart(2, '0')
-                val day = parts[2].padStart(2, '0')
-                return "$year-$month-$day"
-            }
-            // Si no es el formato "AAAA, MM, DD", asume que ya está en "AAAA-MM-DD" o intenta parsearlo
-            LocalDate.parse(dateString).toString() // Esto validará y devolverá el formato estándar
-        } catch (e: DateTimeParseException) {
-            Log.e(TAG, "Error al parsear fecha para cálculo: $dateString. Devolviendo cadena original.", e)
-            // Si no se puede parsear, devuelve la cadena original. CalculadoraGET lo manejará como error.
-            dateString
-        } catch (e: Exception) {
-            Log.e(TAG, "Error inesperado al formatear fecha para cálculo: $dateString", e)
-            dateString
-        }
-    }
-private fun calculateMacronutrientTargets(get: Double) {
-    // Asumiendo una distribución estándar:
-    // 40% de Carbohidratos, 30% de Proteínas, 30% de Grasas
-    val proteinCalories = get * 0.30
-    val fatCalories = get * 0.30
-    val carbsCalories = get * 0.40
-
-    // 1 gramo de proteína = 4 kcal
-    // 1 gramo de grasa = 9 kcal
-    // 1 gramo de carbohidratos = 4 kcal
-    _proteinTarget.value = (proteinCalories / 4.0).toFloat()
-    _fatTarget.value = (fatCalories / 9.0).toFloat()
-    _carbsTarget.value = (carbsCalories / 4.0).toFloat()
-
-    Log.d(TAG, "Targets calculados: Carbs=${_carbsTarget.value}, Prot=${_proteinTarget.value}, Fat=${_fatTarget.value}")
-}
     private fun calculateMealTargets(get: Double) {
-        // Distribución estándar de calorías por comida
         _breakfastTarget.value = (get * 0.25).toInt()
         _lunchTarget.value = (get * 0.35).toInt()
         _dinnerTarget.value = (get * 0.30).toInt()
