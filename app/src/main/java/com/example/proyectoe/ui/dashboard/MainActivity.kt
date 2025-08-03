@@ -31,12 +31,14 @@ import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.example.proyectoe.ui.auth.LoginActivity
 import android.os.Build
+import com.example.proyectoe.StepCounterService
 
 class MainActivity : ComponentActivity() {
 
     private val requestMultiplePermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
+        var activityRecognitionGranted = false
         permissions.entries.forEach {
             val permissionName = it.key
             val isGranted = it.value
@@ -45,6 +47,7 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.ACTIVITY_RECOGNITION -> {
                     if (isGranted) {
                         println("Permiso ACTIVITY_RECOGNITION concedido.")
+                        activityRecognitionGranted = true
                     } else {
                         println("Permiso ACTIVITY_RECOGNITION denegado.")
                     }
@@ -58,6 +61,9 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+        if (activityRecognitionGranted) {
+            startStepCounterService()
         }
     }
 
@@ -210,23 +216,43 @@ class MainActivity : ComponentActivity() {
 
     private fun checkAndRequestAllPermissions() {
         val permissionsToRequest = mutableListOf<String>()
+        var activityRecognitionGranted = false
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            permissionsToRequest.add(Manifest.permission.ACTIVITY_RECOGNITION)
+        // Lógica para ACTIVITY_RECOGNITION
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
+                != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(Manifest.permission.ACTIVITY_RECOGNITION)
+            } else {
+                activityRecognitionGranted = true
+            }
+        } else {
+            // Para versiones de Android < Q, se asume que el permiso está concedido en el manifest
+            activityRecognitionGranted = true
         }
 
+        // Lógica para POST_NOTIFICATIONS
         if (Build.VERSION.SDK_INT >= 33) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
+                != PackageManager.PERMISSION_GRANTED) {
                 permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
-        
+
         if (permissionsToRequest.isNotEmpty()) {
             requestMultiplePermissionsLauncher.launch(permissionsToRequest.toTypedArray())
+        } else if (activityRecognitionGranted) {
+            // Inicia el servicio solo si no se necesitan permisos adicionales
+            startStepCounterService()
+        }
+    }
+
+    private fun startStepCounterService() {
+        val serviceIntent = Intent(this, StepCounterService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
         }
     }
 }

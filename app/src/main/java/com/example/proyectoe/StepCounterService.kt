@@ -36,11 +36,16 @@ class StepCounterService : Service(), SensorEventListener {
         super.onCreate()
         createNotificationChannel()
 
+        // llama primero al servicio en segundo plano
+        startForeground(NOTIFICATION_ID, buildNotification(0).build())
+
+        // continua pidiendo el sensor
         stepCounterRepository = (application as MyApplication).stepCounterRepository
         stepCounterRepository.init()
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
+        // si no encuentra el sensor ya no se cierra , solo lo para
         if (stepCounterSensor == null) {
             Log.e("StepService", "Step counter sensor not available on this device. Stopping service.")
             stopSelf()
@@ -50,11 +55,7 @@ class StepCounterService : Service(), SensorEventListener {
         sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_UI)
         Log.d("StepService", "Sensor listener registered.")
 
-        // Lanza el servicio en primer plano con la cantidad de pasos inicial
-        val initialSteps = stepCounterRepository.currentDailySteps.value
-        startForeground(NOTIFICATION_ID, buildNotification(initialSteps).build())
-
-        // Observa los cambios de pasos y actualiza la notificación dinamicamente
+        // observa los pasos y actualiza la noti
         serviceScope.launch {
             stepCounterRepository.currentDailySteps.collect { steps ->
                 updateNotification(steps)

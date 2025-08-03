@@ -19,12 +19,12 @@ class MyApplication : Application() {
         stepCounterRepository.init()
 
         // Iniciamos el segundo plano
-        val serviceIntent = Intent(this, StepCounterService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
-        }
+//        val serviceIntent = Intent(this, StepCounterService::class.java)
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            startForegroundService(serviceIntent)
+//        } else {
+//            startService(serviceIntent)
+//        }
 
         // Desayuno a las 9:00
         NotificationScheduler.scheduleDailyNotification(

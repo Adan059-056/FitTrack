@@ -9,7 +9,7 @@ import android.util.Log
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
-            Log.d("BootReceiver", "Device reboot detected. Attempting to start StepCounterService.")
+            Log.d("BootReceiver", "reinicio detectado intentando usar el stepcounter service.")
             val serviceIntent = Intent(context, StepCounterService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context?.startForegroundService(serviceIntent)
