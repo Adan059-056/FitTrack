@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import com.example.proyectoe.data.repository.StepCounterRepository
 import com.example.proyectoe.StepCounterService
+import com.example.proyectoe.data.datasource.notificaciones.NotificationScheduler
 
 class MyApplication : Application() {
 
@@ -24,6 +25,33 @@ class MyApplication : Application() {
         } else {
             startService(serviceIntent)
         }
+
+        // Desayuno a las 8:00 AM
+        NotificationScheduler.scheduleDailyNotification(
+            this,
+            11,
+            0,
+            "¡Es hora del desayuno! Registra tus alimentos.",
+            1
+        )
+        // Almuerzo a las 3:00 PM
+        NotificationScheduler.scheduleDailyNotification(
+            this,
+            15,
+            0,
+            "¡Hora de comer! Registra tus alimentos.",
+            2
+        )
+        // Cena a las 6:00 PM
+        NotificationScheduler.scheduleDailyNotification(
+            this,
+            6,
+            0,
+            "¡Hora de la cena! Registra tus alimentos.",
+            3
+        )
+
+
     }
 
 }

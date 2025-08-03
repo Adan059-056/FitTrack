@@ -22,7 +22,7 @@ class StepCounterService : Service(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var stepCounterSensor: Sensor? = null
     private lateinit var stepCounterRepository: StepCounterRepository
-
+    private var totalSteps = 0
     private val NOTIFICATION_CHANNEL_ID = "step_counter_channel"
     private val NOTIFICATION_ID = 1
 

@@ -30,16 +30,34 @@ import com.example.proyectoe.ui.Food.EditFoodScreen
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.example.proyectoe.ui.auth.LoginActivity
+import android.os.Build
 
 class MainActivity : ComponentActivity() {
 
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            println("Permiso ACTIVITY_RECOGNITION concedido!")
-        } else {
-            println("Permiso ACTIVITY_RECOGNITION denegado. El contador de pasos no funcionará.")
+    private val requestMultiplePermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        permissions.entries.forEach {
+            val permissionName = it.key
+            val isGranted = it.value
+
+            when (permissionName) {
+                Manifest.permission.ACTIVITY_RECOGNITION -> {
+                    if (isGranted) {
+                        println("Permiso ACTIVITY_RECOGNITION concedido.")
+                    } else {
+                        println("Permiso ACTIVITY_RECOGNITION denegado.")
+                    }
+                }
+
+                Manifest.permission.POST_NOTIFICATIONS -> {
+                    if (isGranted) {
+                        println("Permiso POST_NOTIFICATIONS concedido.")
+                    } else {
+                        println("Permiso POST_NOTIFICATIONS denegado.")
+                    }
+                }
+            }
         }
     }
 
@@ -47,7 +65,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         FirebaseApp.initializeApp(this)
-        checkAndRequestActivityRecognitionPermission()
+        checkAndRequestAllPermissions()
 
         setContent {
             val navController = rememberNavController()
@@ -93,7 +111,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onUserNotLoggedIn = {
-                                    val intent = Intent(this@MainActivity, LoginActivity::class.java)
+                                    val intent =
+                                        Intent(this@MainActivity, LoginActivity::class.java)
                                     startActivity(intent)
                                     finish()
                                 }
@@ -115,7 +134,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onNavigateBack = {
-                                    val intent = Intent(this@MainActivity, LoginActivity::class.java)
+                                    val intent =
+                                        Intent(this@MainActivity, LoginActivity::class.java)
                                     startActivity(intent)
                                     finish()
                                 },
@@ -175,7 +195,8 @@ class MainActivity : ComponentActivity() {
                                 onBack = { navController.popBackStack() },
                                 onLogout = {
                                     auth.signOut()
-                                    val intent = Intent(this@MainActivity, LoginActivity::class.java)
+                                    val intent =
+                                        Intent(this@MainActivity, LoginActivity::class.java)
                                     startActivity(intent)
                                     finish()
                                 }
@@ -187,23 +208,25 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun checkAndRequestActivityRecognitionPermission() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACTIVITY_RECOGNITION
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                println("Permiso ACTIVITY_RECOGNITION ya concedido.")
-            }
+    private fun checkAndRequestAllPermissions() {
+        val permissionsToRequest = mutableListOf<String>()
 
-            shouldShowRequestPermissionRationale(Manifest.permission.ACTIVITY_RECOGNITION) -> {
-                println("Necesitamos el permiso de reconocimiento de actividad para contar tus pasos. Por favor, concédelo.")
-                requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
-            }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionsToRequest.add(Manifest.permission.ACTIVITY_RECOGNITION)
+        }
 
-            else -> {
-                requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
             }
+        }
+        
+        if (permissionsToRequest.isNotEmpty()) {
+            requestMultiplePermissionsLauncher.launch(permissionsToRequest.toTypedArray())
         }
     }
 }
