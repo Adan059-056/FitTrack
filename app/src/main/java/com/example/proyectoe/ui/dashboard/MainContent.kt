@@ -95,7 +95,7 @@ fun MainContent(
 
     val steps by dashboardViewModel.currentSteps.observeAsState(0)
     val distance by dashboardViewModel.distanceKm.observeAsState(0f)
-    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    val dailyStepGoal by dashboardViewModel.dailyStepGoal.observeAsState(10000)
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -109,7 +109,7 @@ fun MainContent(
                 userName = user?.nombre ?: "Usuario",
                 profilePhotoUri = profilePhotoUri
             )
-            UserResume(currentSteps = steps, distanceKm = distance)
+            UserResume(currentSteps = steps, distanceKm = distance,dailyStepGoal = dailyStepGoal)
             Spacer(Modifier.height(16.dp))
             TextoMotivacion()
             Spacer(Modifier.height(16.dp))

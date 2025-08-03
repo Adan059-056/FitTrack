@@ -116,7 +116,7 @@ class StepCounterService : Service(), SensorEventListener {
         return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle("Contador de Pasos")
             .setContentText("Pasos hoy: $steps")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.icono_pasos)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
     }

@@ -1,4 +1,5 @@
 package com.example.proyectoe.ui.dashboard.components
+import android.health.connect.datatypes.ExerciseCompletionGoal
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,7 +25,7 @@ import com.github.mikephil.charting.components.Legend
 private val BorderColor = Color(0xFF3A506B)
 
 @Composable
-fun UserResume(currentSteps: Int, distanceKm: Float) {
+fun UserResume(currentSteps: Int, distanceKm: Float,dailyStepGoal: Int) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -78,10 +79,10 @@ fun UserResume(currentSteps: Int, distanceKm: Float) {
             )
 
             //valores de la grafica
-            val dailyStepGoal = 10000f // meta de pasos
+            val dailyStepGoalFloat = dailyStepGoal.toFloat() //objetivo de pasos
             val currentStepsFloat = currentSteps.toFloat()
-            val completedSteps = if (currentStepsFloat > dailyStepGoal) dailyStepGoal else currentStepsFloat
-            val remainingSteps = dailyStepGoal - completedSteps
+            val completedSteps = if (currentStepsFloat > dailyStepGoalFloat) dailyStepGoalFloat else currentStepsFloat
+            val remainingSteps = dailyStepGoalFloat - completedSteps
 
             // colores de la grafica
             val pieChartSegmentColors = ArrayList<Int>()
@@ -95,10 +96,10 @@ fun UserResume(currentSteps: Int, distanceKm: Float) {
             // como se comportan los colores
             if (completedSteps >= dailyStepGoal) {
                 pieChartSegmentColors.add(finalColorInt)
-                pieChartData["Completados"] = dailyStepGoal
+                pieChartData["Completados"] = dailyStepGoalFloat
             } else if (currentStepsFloat == 0f && dailyStepGoal > 0f) {
                 pieChartSegmentColors.add(remainingColorInt)
-                pieChartData["Restantes"] = dailyStepGoal
+                pieChartData["Restantes"] = dailyStepGoalFloat
             } else {
                 pieChartSegmentColors.add(completedColorInt)
                 pieChartSegmentColors.add(remainingColorInt)
@@ -113,7 +114,7 @@ fun UserResume(currentSteps: Int, distanceKm: Float) {
             //agrega los textos debajo de la grafica
             legendEntries.add(
                 com.github.mikephil.charting.components.LegendEntry(
-                    "Objetivo ${dailyStepGoal.toInt()} pasos",
+                    "Objetivo ${dailyStepGoalFloat.toInt()} pasos",
                     Legend.LegendForm.CIRCLE,
                     10f,//tamaño
                     0f,

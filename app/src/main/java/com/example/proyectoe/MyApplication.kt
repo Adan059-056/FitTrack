@@ -45,8 +45,8 @@ class MyApplication : Application() {
         // Cena a las 6:00 PM
         NotificationScheduler.scheduleDailyNotification(
             this,
-            22,
-            17,
+            23,
+            30,
             "¡Hora de la cena! Registra tus alimentos.",
             3
         )

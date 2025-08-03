@@ -13,6 +13,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -22,6 +23,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     private var saveStepsJob: Job? = null
 
+    // Ahora es un LiveData para que su valor pueda cambiar
+    private val _dailyStepGoal = MutableLiveData(10000)
+    val dailyStepGoal: LiveData<Int> = _dailyStepGoal
 
     private val _currentSteps = MutableLiveData(0)
     val currentSteps: LiveData<Int> = _currentSteps
@@ -33,37 +37,50 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         String.format("%.2f", distanceKm).toFloat()
     }
 
-    val dailyStepGoal = 10000f
-
     val stepProgressPercentage: LiveData<Float> = currentSteps.map { steps ->
-        if (dailyStepGoal > 0) (steps / dailyStepGoal) * 100f else 0f
+        // Usa el valor dinámico del objetivo de pasos
+        val goal = dailyStepGoal.value ?: 10000
+        if (goal > 0) (steps.toFloat() / goal.toFloat()) * 100f else 0f
     }
 
     val stepsRemaining: LiveData<Float> = currentSteps.map { steps ->
-        val remaining = dailyStepGoal - steps
-        if (remaining < 0) 0f else remaining
+        // Usa el valor dinámico del objetivo de pasos
+        val goal = dailyStepGoal.value ?: 10000
+        val remaining = goal - steps
+        if (remaining < 0) 0f else remaining.toFloat()
     }
 
     fun loadStepsAndStartSavingForUser(userId: String) {
         println("DashboardViewModel: Cargando pasos para el usuario: $userId")
-
         _currentSteps.value = 0
         saveStepsJob?.cancel()
 
-        db.collection("usuarios").document(userId)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    println("Error al escuchar cambios en pasos del usuario: $e")
-                    return@addSnapshotListener
+        viewModelScope.launch {
+            try {
+                // 1. Cargar los datos del usuario, incluyendo el objetivo
+                val userDoc = db.collection("usuarios").document(userId).get().await()
+                if (userDoc.exists()) {
+                    val objetivo = userDoc.getString("objetivo") ?: "Mantener peso"
+                    calculateStepsGoal(objetivo)
                 }
-                val fetchedSteps = snapshot?.getLong("pasosDiarios")?.toInt() ?: 0
-
-                stepCounterRepository.syncWithSavedSteps(fetchedSteps)
-
-                if (_currentSteps.value != fetchedSteps) {
-                    _currentSteps.postValue(fetchedSteps)
-                }
+            } catch (e: Exception) {
+                println("Error al cargar datos del usuario para el dashboard: $e")
             }
+
+            // 2. Escuchar los cambios en los pasos
+            db.collection("usuarios").document(userId)
+                .addSnapshotListener { snapshot, e ->
+                    if (e != null) {
+                        println("Error al escuchar cambios en pasos del usuario: $e")
+                        return@addSnapshotListener
+                    }
+                    val fetchedSteps = snapshot?.getLong("pasosDiarios")?.toInt() ?: 0
+                    stepCounterRepository.syncWithSavedSteps(fetchedSteps)
+                    if (_currentSteps.value != fetchedSteps) {
+                        _currentSteps.postValue(fetchedSteps)
+                    }
+                }
+        }
 
         saveStepsJob = viewModelScope.launch {
             stepCounterRepository.currentDailySteps
@@ -82,6 +99,16 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                     }
                 }
         }
+    }
+
+    // NUEVA FUNCIÓN: Lógica para calcular el objetivo de pasos
+    private fun calculateStepsGoal(objetivo: String) {
+        val newGoal = when (objetivo) {
+            "Perder peso" -> 12000
+            "Ganar músculo" -> 8000
+            else -> 10000
+        }
+        _dailyStepGoal.postValue(newGoal)
     }
 
     override fun onCleared() {
