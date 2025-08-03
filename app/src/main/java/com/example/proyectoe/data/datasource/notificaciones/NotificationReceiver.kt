@@ -20,7 +20,7 @@ class NotificationReceiver : BroadcastReceiver() {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Crear el canal de notificación para Android 8.0+
+        // Crea el canal de notificación
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
@@ -32,15 +32,15 @@ class NotificationReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Construir la notificación
+        // Construye la notificación
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Asegúrate de tener un icono
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Recordatorio de Alimentación")
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
 
-        // Mostrar la notificación
+        // Muestra la notificación
         notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
 }

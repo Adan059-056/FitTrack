@@ -565,20 +565,20 @@ fun MealRow(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            OutlinedButton(
-                onClick = { onAddFoodToMeal(mealName) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = orangePrimary
-                ),
-                border = BorderStroke(1.dp, orangePrimary),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("Añadir alimento al $mealName")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+//            OutlinedButton(
+//                onClick = { onAddFoodToMeal(mealName) },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 16.dp),
+//                colors = ButtonDefaults.outlinedButtonColors(
+//                    contentColor = orangePrimary
+//                ),
+//                border = BorderStroke(1.dp, orangePrimary),
+//                shape = RoundedCornerShape(8.dp)
+//            ) {
+//                Text("Añadir alimento al $mealName")
+//            }
+            //Spacer(modifier = Modifier.height(16.dp))
         }
     }
 
@@ -628,9 +628,9 @@ fun FoodItemCatalogRow(food: FoodItem, onAddClick: (FoodItem) -> Unit, onEditCli
             Icon(Icons.Default.Add, contentDescription = "Añadir a comida", tint = orangePrimary)
         }
 
-        IconButton(onClick = { onEditClick(food.id) }) {
-            Icon(Icons.Default.Search, contentDescription = "Ver detalles/Editar", tint = textColor.copy(alpha = 0.7f))
-        }
+//        IconButton(onClick = { onEditClick(food.id) }) {
+//            Icon(Icons.Default.Search, contentDescription = "Ver detalles/Editar", tint = textColor.copy(alpha = 0.7f))
+//        }
     }
 }
 
