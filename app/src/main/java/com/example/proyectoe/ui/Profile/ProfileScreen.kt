@@ -283,7 +283,7 @@ fun ProfileScreen(
                             textColor = Color.White,
                             fechaNacimiento = editableUser?.fechaNacimiento ?: "N/A",
                             genero = editableUser?.genero ?: "N/A",
-                            estatura = editableUser?.altura ?: "N/A",
+                            altura = editableUser?.altura ?: "N/A",
                             peso = editableUser?.peso ?: "N/A",
                             actividad = editableUser?.actividad ?: "N/A",
                             objetivo = editableUser?.objetivo ?: "N/A",
@@ -483,7 +483,7 @@ fun PersonalInfoSection(
     textColor: Color = MaterialTheme.colorScheme.onSurface,
     fechaNacimiento: String,
     genero: String,
-    estatura: String,
+    altura: String,
     peso: String,
     actividad: String,
     objetivo: String,
@@ -629,7 +629,7 @@ fun PersonalInfoSection(
 
             InfoRowEditable(
                 label = "Estatura",
-                value = estatura,
+                value = altura,
                 textColor = textColor,
                 isEditing = isEditing,
                 onValueChange = onEstaturaChanged,
