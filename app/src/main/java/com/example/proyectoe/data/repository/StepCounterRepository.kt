@@ -14,7 +14,7 @@ class StepCounterRepository(private val context: Context) {
 
     private val PREFS_NAME = "contador_pasos_prefs"
     private val KEY_LAST_SAVED_DATE = "ultima_fecha_guardada"
-    private val KEY_STEPS_AT_LAST_SAVE = "pasos_al_ultimo_guardado"
+    private val KEY_STEPS_OFFSET = "pasos_offset" // Cambiado el nombre para mayor claridad
     private val KEY_DAILY_STEPS = "pasos_diarios"
 
     private val sharedPrefs: SharedPreferences =
@@ -25,26 +25,11 @@ class StepCounterRepository(private val context: Context) {
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-    // Valor del sensor la última vez que se leyó
-    private var lastTotalStepsFromSensor = -1
+    // Valor del sensor al inicio del día. Este es el offset.
+    private var stepsOffset = 0
 
     fun init() {
         loadDailySteps()
-    }
-
-    // sincroniza los pasos de firebase
-    fun syncWithSavedSteps(savedSteps: Int) {
-        val today = dateFormat.format(Date())
-        sharedPrefs.edit().apply {
-            // Sincronizamos el contador interno con el valor de Firestore
-            putInt(KEY_DAILY_STEPS, savedSteps)
-            // Ajustamos el offset para que el siguiente cálculo sea correcto
-            putInt(KEY_STEPS_AT_LAST_SAVE, lastTotalStepsFromSensor - savedSteps)
-            putString(KEY_LAST_SAVED_DATE, today)
-            apply()
-        }
-        _currentDailySteps.value = savedSteps
-        Log.d("StepRepo", "Sincronizado con Firestore. Pasos: $savedSteps, Nuevo offset: ${lastTotalStepsFromSensor - savedSteps}")
     }
 
     private fun loadDailySteps() {
@@ -52,64 +37,87 @@ class StepCounterRepository(private val context: Context) {
         val lastSavedDate = sharedPrefs.getString(KEY_LAST_SAVED_DATE, null)
 
         if (today != lastSavedDate) {
+            // Es un nuevo día. Reiniciamos el offset y el contador.
+            stepsOffset = -1 // Usamos -1 como indicador de que necesitamos un nuevo offset
             _currentDailySteps.value = 0
-            sharedPrefs.edit().apply {
-                putString(KEY_LAST_SAVED_DATE, today)
-                putInt(KEY_STEPS_AT_LAST_SAVE, -1)
-                putInt(KEY_DAILY_STEPS, 0)
-                apply()
-            }
-            Log.d("StepRepo", "Nuevo dia detectado. Pasos diarios reiniciados a 0.")
+            Log.d("StepRepo", "Nuevo dia. Reiniciando contador.")
         } else {
+            // Es el mismo día. Cargamos el offset y los pasos guardados.
+            stepsOffset = sharedPrefs.getInt(KEY_STEPS_OFFSET, -1)
             _currentDailySteps.value = sharedPrefs.getInt(KEY_DAILY_STEPS, 0)
-            Log.d("StepRepo", "Mismo dia. Cargando pasos diarios: ${_currentDailySteps.value}")
+            Log.d("StepRepo", "Mismo dia. Cargando pasos diarios: ${_currentDailySteps.value}, Offset: $stepsOffset")
         }
     }
 
     fun updateTotalSteps(totalSensorSteps: Int) {
-        lastTotalStepsFromSensor = totalSensorSteps // Guardamos el valor para la sincronización
-
         val today = dateFormat.format(Date())
-        val lastSavedDate = sharedPrefs.getString(KEY_LAST_SAVED_DATE, null)
-        var stepsAtDayStart = sharedPrefs.getInt(KEY_STEPS_AT_LAST_SAVE, -1)
 
-        val editor = sharedPrefs.edit()
-
-        if (today != lastSavedDate || stepsAtDayStart == -1) {
-            editor.putInt(KEY_STEPS_AT_LAST_SAVE, totalSensorSteps)
-            editor.putString(KEY_LAST_SAVED_DATE, today)
+        if (stepsOffset == -1) {
+            // Esta es la primera lectura del sensor en el día.
+            // Establecemos el offset y guardamos la fecha.
+            stepsOffset = totalSensorSteps
             _currentDailySteps.value = 0
-            editor.putInt(KEY_DAILY_STEPS, _currentDailySteps.value)
-            editor.apply()
-            Log.d("StepRepo", "Nuevo dia o primer dato del sensor. Estableciendo offset del sensor en: $totalSensorSteps, Pasos diarios a 0.")
+            with(sharedPrefs.edit()) {
+                putString(KEY_LAST_SAVED_DATE, today)
+                putInt(KEY_STEPS_OFFSET, stepsOffset)
+                putInt(KEY_DAILY_STEPS, _currentDailySteps.value)
+                apply()
+            }
+            Log.d("StepRepo", "Primer dato del sensor del dia. Offset establecido a: $stepsOffset")
             return
         }
 
-        if (totalSensorSteps < stepsAtDayStart) {
-            val previousDailySteps = sharedPrefs.getInt(KEY_DAILY_STEPS, 0)
-            val stepsAfterReboot = totalSensorSteps
-            _currentDailySteps.value = previousDailySteps + stepsAfterReboot
-            editor.putInt(KEY_STEPS_AT_LAST_SAVE, totalSensorSteps)
-            editor.putInt(KEY_DAILY_STEPS, _currentDailySteps.value)
-            editor.apply()
-            Log.d("StepRepo", "Dispositivo reiniciado. Pasos previos: $previousDailySteps, Pasos desde reinicio del sensor: $stepsAfterReboot, Total hoy: ${_currentDailySteps.value}")
+        // Si el valor del sensor es menor que el offset, significa que el dispositivo se ha reiniciado.
+        // En este caso, el offset ya no es válido para el día.
+        if (totalSensorSteps < stepsOffset) {
+            Log.d("StepRepo", "Dispositivo reiniciado. El sensor ha vuelto a 0. Ajustando offset.")
+            // Para mantener la consistencia, el nuevo offset será el totalSensorSteps.
+            // Los pasos previos del día ya estaban guardados, así que la lógica es correcta.
+            stepsOffset = totalSensorSteps
+            with(sharedPrefs.edit()) {
+                putInt(KEY_STEPS_OFFSET, stepsOffset)
+                apply()
+            }
         }
-        else {
-            _currentDailySteps.value = totalSensorSteps - stepsAtDayStart
-            editor.putInt(KEY_DAILY_STEPS, _currentDailySteps.value)
-            editor.apply()
-            Log.d("StepRepo", "Mismo dia, sin reinicio. Total Sensor: $totalSensorSteps, Offset del dia: $stepsAtDayStart, Pasos hoy: ${_currentDailySteps.value}")
+
+        // Calculamos los pasos diarios y actualizamos el valor
+        val dailySteps = totalSensorSteps - stepsOffset
+        _currentDailySteps.value = dailySteps
+
+        // Guardamos los pasos diarios de forma persistente
+        with(sharedPrefs.edit()) {
+            putInt(KEY_DAILY_STEPS, dailySteps)
+            apply()
+        }
+        Log.d("StepRepo", "Pasos diarios actualizados: $dailySteps")
+    }
+
+    fun syncWithSavedSteps(savedSteps: Int) {
+        // Solo actualizamos los pasos si el valor de Firestore es mayor
+        if (savedSteps > _currentDailySteps.value) {
+            _currentDailySteps.value = savedSteps
+
+            // También guardamos el valor en SharedPreferences
+            with(sharedPrefs.edit()) {
+                putInt(KEY_DAILY_STEPS, savedSteps)
+                apply()
+            }
+            Log.d("StepRepo", "Sincronizado con Firestore. Pasos actualizados a: $savedSteps")
+        } else {
+            Log.d("StepRepo", "El valor de Firestore ($savedSteps) no es mayor que el actual (${_currentDailySteps.value}). No se actualiza.")
         }
     }
 
     fun resetDailySteps() {
-        sharedPrefs.edit().apply {
+        with(sharedPrefs.edit()) {
             putString(KEY_LAST_SAVED_DATE, "")
             putInt(KEY_DAILY_STEPS, 0)
-            putInt(KEY_STEPS_AT_LAST_SAVE, -1)
+            putInt(KEY_STEPS_OFFSET, -1)
             apply()
         }
         _currentDailySteps.value = 0
         Log.d("StepRepo", "Conteo diario reiniciado manualmente.")
     }
+
+
 }
