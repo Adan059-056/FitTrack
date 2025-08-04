@@ -414,19 +414,19 @@ fun ProfileHeader(
                 )
 
                 val deepBlue = Color(0xFF0F1C3F)
-                Button(
-                    onClick = { /* Cambiar objetivo */ },
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = deepBlue,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Cambiar Objetivo", fontSize = 14.sp)
-                }
+//                Button(
+//                    onClick = { /* Cambiar objetivo */ },
+//                    modifier = Modifier
+//                        .padding(top = 16.dp)
+//                        .fillMaxWidth(),
+//                    colors = ButtonDefaults.buttonColors(
+//                        containerColor = deepBlue,
+//                        contentColor = Color.White
+//                    ),
+//                    shape = RoundedCornerShape(12.dp)
+//                ) {
+//                    Text("Cambiar Objetivo", fontSize = 14.sp)
+//                }
             }
         }
     }
