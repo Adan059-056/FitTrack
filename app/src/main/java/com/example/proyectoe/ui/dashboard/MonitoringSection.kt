@@ -49,7 +49,6 @@ fun MonitoringSection()
 
     Spacer(Modifier.height(24.dp)) // Espacio antes de la gráfica
 
-// --- Fin de la Gráfica de Pastel ---
 }
 }
 @Composable

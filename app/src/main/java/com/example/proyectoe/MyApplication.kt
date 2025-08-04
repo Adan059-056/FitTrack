@@ -1,10 +1,7 @@
 package com.example.proyectoe
 
 import android.app.Application
-import android.content.Intent
-import android.os.Build
 import com.example.proyectoe.data.repository.StepCounterRepository
-import com.example.proyectoe.StepCounterService
 import com.example.proyectoe.data.datasource.notificaciones.NotificationScheduler
 
 class MyApplication : Application() {
@@ -17,14 +14,6 @@ class MyApplication : Application() {
         super.onCreate()
         // Inicializa el repository
         stepCounterRepository.init()
-
-        // Iniciamos el segundo plano
-//        val serviceIntent = Intent(this, StepCounterService::class.java)
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            startForegroundService(serviceIntent)
-//        } else {
-//            startService(serviceIntent)
-//        }
 
         // Desayuno a las 9:00
         NotificationScheduler.scheduleDailyNotification(

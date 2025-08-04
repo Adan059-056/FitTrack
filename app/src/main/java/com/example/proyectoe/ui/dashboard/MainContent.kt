@@ -81,12 +81,12 @@ fun MainContent(
     val profilePhotoUri by profileViewModel.profilePhotoUri.collectAsState()
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
-    // Este LaunchedEffect se ejecuta una vez para cargar el perfil inicial.
+    // se ejecuta una vez para cargar el perfil inicial.
     LaunchedEffect(Unit) {
         profileViewModel.loadUserProfile()
     }
 
-    // Este LaunchedEffect reacciona a los cambios de usuario para cargar los pasos.
+    // este LaunchedEffect reacciona a los cambios de usuario para cargar los pasos.
     LaunchedEffect(key1 = currentUserId) {
         if (currentUserId != null) {
             dashboardViewModel.loadStepsAndStartSavingForUser(currentUserId)

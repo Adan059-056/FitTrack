@@ -58,7 +58,7 @@ fun FoodScreen(
     onBack: () -> Unit = {},
     onAddFood: () -> Unit = {},
     onEditFood: (String) -> Unit = {},
-    foodViewModel: FoodViewModel = provideFoodViewModel(),
+    foodViewModel: FoodViewModel,
     profileViewModel: ProfileViewModel = viewModel()
 ) {
     val consumedFoodEntries by foodViewModel.consumedFoodEntries.collectAsState()

@@ -35,7 +35,7 @@ import androidx.compose.foundation.text.selection.TextSelectionColors
 fun AddFoodScreen(
     foodId: String? = null,
     onBack: () -> Unit = {},
-    foodViewModel: FoodViewModel = viewModel()
+    foodViewModel: FoodViewModel
 ) {
 
     var name by remember { mutableStateOf("") }

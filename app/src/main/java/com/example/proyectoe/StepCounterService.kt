@@ -75,10 +75,10 @@ class StepCounterService : Service(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
             val totalSensorSteps = event.values[0].toInt()
-            // El repositorio maneja la lógica para calcular y guardar los pasos
+            // el repositorio maneja la lógica para calcular y guardar los pasos
             stepCounterRepository.updateTotalSteps(totalSensorSteps)
-            // La notificación se actualizará automáticamente a través del flujo
-            Log.d("StepService", "Sensor detected: Total steps: $totalSensorSteps, Daily steps: ${stepCounterRepository.currentDailySteps.value}")
+            // la notificación se actualizará automáticamente
+            Log.d("StepService", "Sensor detectado: Steps totales: $totalSensorSteps, Daily steps: ${stepCounterRepository.currentDailySteps.value}")
         }
     }
 

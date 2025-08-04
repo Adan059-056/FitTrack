@@ -17,7 +17,7 @@ import com.example.proyectoe.ui.intro.componets.IntroDescription
 @Composable
 fun IntroScreen(
     onStartClick: () -> Unit,
-    onFooterSignInClick: () -> Unit // <-- Nuevo callback para el footer
+    onFooterSignInClick: () -> Unit //callback para el footer
 ) {
     LazyColumn(
         modifier = Modifier
@@ -27,7 +27,7 @@ fun IntroScreen(
         item { IntroHeader() }
         item { IntroDescription() }
         item { IntroActionButton(onStartClick) }
-        item { IntroFooter(onFooterSignInClick) } // <-- Pasa el callback al footer
+        item { IntroFooter(onFooterSignInClick) } //Pasa el callback al footer
     }
 }
 

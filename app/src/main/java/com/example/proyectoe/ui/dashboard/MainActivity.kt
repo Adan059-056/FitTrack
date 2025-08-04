@@ -32,6 +32,13 @@ import androidx.navigation.NavType
 import com.example.proyectoe.ui.auth.LoginActivity
 import android.os.Build
 import com.example.proyectoe.StepCounterService
+import com.example.proyectoe.MyApplication
+import androidx.compose.ui.platform.LocalContext
+import com.example.proyectoe.ui.Food.FoodViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+
+
 
 class MainActivity : ComponentActivity() {
 
@@ -76,6 +83,22 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             val auth = FirebaseAuth.getInstance()
+            val context = LocalContext.current
+
+            val application = LocalContext.current.applicationContext as MyApplication
+            val stepCounterRepository = application.stepCounterRepository
+            val foodViewModel: FoodViewModel = remember {
+                ViewModelProvider(this, object : ViewModelProvider.Factory {
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        if (modelClass.isAssignableFrom(FoodViewModel::class.java)) {
+                            @Suppress("UNCHECKED_CAST")
+                            return FoodViewModel(stepCounterRepository) as T
+                        }
+                        throw IllegalArgumentException("Unknown ViewModel class")
+                    }
+                }).get(FoodViewModel::class.java)
+            }
+
 
             // Da la ruta despues de pasar la autenticacion o si no funciona
             val startDestination = if (auth.currentUser != null) {
@@ -89,7 +112,7 @@ class MainActivity : ComponentActivity() {
 
             // para esconder la barra de botones o mostralos
             val showBottomBar =
-                currentRoute !in listOf("start", "singin_route", "register_route", "add_food_route")
+                currentRoute !in listOf("start", "singin_route", "register_route", "add_food_route", "edit_food_route/{foodId}")
 
             MaterialTheme {
                 Scaffold(
@@ -162,12 +185,14 @@ class MainActivity : ComponentActivity() {
                             FoodScreen(
                                 onBack = { navController.popBackStack() },
                                 onAddFood = { navController.navigate("add_food_route") },
-                                onEditFood = { foodId -> navController.navigate("edit_food_route/$foodId") }
+                                onEditFood = { foodId -> navController.navigate("edit_food_route/$foodId") },
+                                foodViewModel = foodViewModel
                             )
                         }
                         composable("add_food_route") {
                             AddFoodScreen(
-                                onBack = { navController.popBackStack() }
+                                onBack = { navController.popBackStack() },
+                                foodViewModel = foodViewModel
                             )
                         }
                         composable(
@@ -184,7 +209,8 @@ class MainActivity : ComponentActivity() {
                                     onFoodUpdated = {
                                         // Después de actualizar para volver a la pantalla de alimentos
                                         navController.popBackStack()
-                                    }
+                                    },
+                                    foodViewModel = foodViewModel
                                 )
                             } else {
                                 // Manejar el caso de ID nulo
@@ -193,16 +219,23 @@ class MainActivity : ComponentActivity() {
                                     "Error: ID de alimento no proporcionado",
                                     Toast.LENGTH_SHORT
                                 ).show()
-                                navController.popBackStack() // Regresa para evitar un estado roto
+                                navController.popBackStack()
                             }
                         }
                         composable("profile") {
                             ProfileScreen(
                                 onBack = { navController.popBackStack() },
                                 onLogout = {
+                                    // obtiene una referencia al contexto y la aplicación
+                                    val application = (context.applicationContext as MyApplication)
+                                    val stepCounterRepository = application.stepCounterRepository
+
+                                    // Reinicia el estado del repositorio
+                                    stepCounterRepository.resetStateForUserChange()
+
+                                    // cierra sesion
                                     auth.signOut()
-                                    val intent =
-                                        Intent(this@MainActivity, LoginActivity::class.java)
+                                    val intent = Intent(this@MainActivity, LoginActivity::class.java)
                                     startActivity(intent)
                                     finish()
                                 }

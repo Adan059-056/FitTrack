@@ -65,7 +65,7 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
     val burnedCalories: StateFlow<Int> = _burnedCalories.asStateFlow()
 
     init {
-        Log.d("FoodViewModelLifecycle", "FoodViewModel init called.")
+        Log.d("FoodViewModelLifecycle", "Se llamó a la inicialización de FoodViewModel.")
         fetchFoodItemsCatalog()
         observeSearchAndCatalogChanges()
         startListeningForConsumedFoodEntries()
@@ -81,7 +81,7 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
         viewModelScope.launch {
             _currentDay.collect { date ->
                 if (getCurrentDate() != date) {
-                    Log.d("FoodViewModel", "Date changed. Fetching new day's consumed entries.")
+                    Log.d("FoodViewModel", "La fecha ha cambiado. Obteniendo las entradas de consumo del nuevo día.")
                     _searchQuery.value = ""
                     fetchConsumedFoodEntries(getCurrentDate())
                 }
@@ -94,7 +94,7 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
         _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
-            Log.d("FoodViewModelFetch", "fetchFoodItemsCatalog started.")
+            Log.d("FoodViewModelFetch", "Inicio de fetchFoodItemsCatalog.")
             try {
                 val snapshot = firestore.collection("foodItems").get().await()
                 val items = snapshot.documents.mapNotNull { doc ->
@@ -102,11 +102,11 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
                 }
                 _allCatalogFoodItems.value = items
                 _isLoading.value = false
-                Log.d("FoodViewModelFetch", "Food items catalog fetched. Count: ${items.size}. First item (if any): ${items.firstOrNull()?.name}")
+                Log.d("FoodViewModelFetch", "Catálogo de alimentos obtenido. Total: ${items.size}. Primer elemento (si existe): ${items.firstOrNull()?.name}")
             } catch (e: Exception) {
                 _errorMessage.value = "Error al cargar catálogo de alimentos: ${e.message}"
                 _isLoading.value = false
-                Log.e("FoodViewModelFetch", "Error fetching food catalog items", e)
+                Log.e("FoodViewModelFetch", "Error al obtener elementos del catálogo de alimentos", e)
             }
         }
     }
@@ -115,7 +115,7 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
         _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
-            Log.d("FoodViewModelAddCatalog", "addFood called for: ${foodItem.name}")
+            Log.d("FoodViewModelAddCatalog", "Se llamó a addFood para: ${foodItem.name}")
             try {
                 val docRef = if (foodItem.id.isBlank()) {
                     firestore.collection("foodItems").document()
@@ -125,18 +125,18 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
                 val foodToSave = foodItem.copy(id = docRef.id)
 
                 docRef.set(foodToSave).await()
-                Log.d("FoodViewModelAddCatalog", "Food saved to Firestore: ${foodToSave.name} with ID: ${foodToSave.id}")
+                Log.d("FoodViewModelAddCatalog", "Alimento guardado en Firestore: ${foodToSave.name} con ID: ${foodToSave.id}")
 
                 fetchFoodItemsCatalog()
                 _isLoading.value = false
                 onSuccess()
-                Log.d("FoodViewModelAddCatalog", "addFood completed successfully. onSuccess called.")
+                Log.d("FoodViewModelAddCatalog", "addFood completado exitosamente. Se llamó a onSuccess.")
             } catch (e: Exception) {
                 val errorMsg = "Error al agregar alimento al catálogo: ${e.message}"
                 _errorMessage.value = errorMsg
                 _isLoading.value = false
                 onFailure(errorMsg)
-                Log.e("FoodViewModelAddCatalog", "Error adding food item to catalog", e)
+                Log.e("FoodViewModelAddCatalog", "Error al agregar alimento al catálogo", e)
             }
         }
     }
@@ -145,7 +145,7 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
         _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
-            Log.d("FoodViewModelUpdateCatalog", "updateFoodItem called for: ${foodItem.name}")
+            Log.d("FoodViewModelUpdateCatalog", "Se llamó a updateFoodItem para: ${foodItem.name}")
             try {
                 if (foodItem.id.isBlank()) {
                     val errorMsg = "ID de alimento no válido para actualizar."
@@ -155,17 +155,17 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
                     return@launch
                 }
                 firestore.collection("foodItems").document(foodItem.id).set(foodItem).await()
-                Log.d("FoodViewModelUpdateCatalog", "Food updated in Firestore: ${foodItem.name} with ID: ${foodItem.id}")
+                Log.d("FoodViewModelUpdateCatalog", "Alimento actualizado en Firestore: ${foodItem.name} con ID: ${foodItem.id}")
                 fetchFoodItemsCatalog()
                 _isLoading.value = false
                 onSuccess()
-                Log.d("FoodViewModelUpdateCatalog", "updateFoodItem completed successfully. onSuccess called.")
+                Log.d("FoodViewModelUpdateCatalog", "updateFoodItem completado exitosamente. Se llamó a onSuccess.")
             } catch (e: Exception) {
                 val errorMsg = "Error al actualizar alimento del catálogo: ${e.message}"
                 _errorMessage.value = errorMsg
                 _isLoading.value = false
                 onFailure(errorMsg)
-                Log.e("FoodViewModelUpdateCatalog", "Error updating food item in catalog", e)
+                Log.e("FoodViewModelUpdateCatalog", "Error al actualizar alimento del catálogo", e)
             }
         }
     }
@@ -187,7 +187,7 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
         }
 
         consumedEntriesListener?.remove()
-        Log.d("FoodViewModelListen", "Starting listener for consumed food entries for user: $userId, date: $date")
+        Log.d("FoodViewModelListen", "Iniciando el escuchador de entradas de alimentos consumidos para el usuario: $userId, fecha: $date")
 
         val docRef = firestore.collection("data_nutricional").document(userId)
             .collection("consumos_diarios").document(date)
@@ -198,7 +198,7 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     _errorMessage.value = "Error al escuchar consumos diarios: ${e.message}"
-                    Log.e("FoodViewModelListen", "Error listening for daily consumptions", e)
+                    Log.e("FoodViewModelListen", "Error al escuchar consumos diarios", e)
                     return@addSnapshotListener
                 }
 
@@ -208,11 +208,11 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
                     }
                     _consumedFoodEntries.value = entries
                     calculateDailyTotals(entries)
-                    Log.d("FoodViewModelListen", "Consumed food entries updated (from Firebase): ${entries.size} items.")
+                    Log.d("FoodViewModelListen", "Entradas de alimentos consumidos actualizadas (desde Firebase): ${entries.size} items.")
                 } else {
                     _consumedFoodEntries.value = emptyList()
                     calculateDailyTotals(emptyList())
-                    Log.d("FoodViewModelListen", "No consumed food entries found for $date, or snapshot is empty.")
+                    Log.d("FoodViewModelListen", "No se encontraron entradas de alimentos consumidos para $date, o la instantánea está vacía.")
                 }
             }
     }
@@ -224,7 +224,7 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
             return
         }
         consumedEntriesListener?.remove()
-        Log.d("FoodViewModelFetchConsumed", "Fetching consumed food entries for user: $userId, date: $date (one-time fetch or new listener)")
+        Log.d("FoodViewModelFetchConsumed", "Obteniendo entradas de alimentos consumidos para el usuario: $userId, fecha: $date (obteniendo una vez o un nuevo escuchador)")
 
         _currentDay.value = date
         startListeningForConsumedFoodEntries()
@@ -272,13 +272,13 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
                     .collection("comidas_registradas").document(entryId)
                     .set(entry).await()
 
-                Log.d("FoodViewModelAddConsumed", "Consumed food entry added to Firestore: ${entry.name} on $currentDate")
+                Log.d("FoodViewModelAddConsumed", "Entrada de alimento consumido añadida a Firestore: ${entry.name} el $currentDate")
                 _isLoading.value = false
                 onComplete(true)
             } catch (e: Exception) {
                 val errorMsg = "Error al agregar consumo: ${e.message}"
                 _errorMessage.value = errorMsg
-                Log.e("FoodViewModelAddConsumed", "Error adding consumed food entry to Firestore", e)
+                Log.e("FoodViewModelAddConsumed", "Error al agregar entrada de alimento consumido a Firestore", e)
                 _isLoading.value = false
                 onComplete(false)
             }
@@ -295,7 +295,7 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
     // metodos de busqueda y calculo de totales
     private fun observeSearchAndCatalogChanges() {
         viewModelScope.launch {
-            Log.d("FoodViewModelObserve", "observeSearchAndCatalogChanges started.")
+            Log.d("FoodViewModelObserve", "Inicio de observeSearchAndCatalogChanges.")
             combine(_searchQuery, _allCatalogFoodItems) { query, allItems ->
                 Pair(query, allItems)
             }.collect { (query, allItems) ->
@@ -307,7 +307,7 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
     private fun filterFoods(query: String, allItems: List<FoodItem>) {
         if (query.isBlank()) {
             _searchResults.value = emptyList()
-            Log.d("FoodViewModelFilter", "Query is blank. Search results cleared.")
+            Log.d("FoodViewModelFilter", "La consulta está en blanco. Se borran los resultados de la búsqueda.")
         } else {
             val filteredList = allItems.filter {
                 it.name.contains(query, ignoreCase = true) ||
@@ -315,12 +315,12 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
             }
             _searchResults.value = filteredList
         }
-        Log.d("FoodViewModelFilter", "Filtering for query: '$query'. Found ${_searchResults.value.size} results. First result (if any): ${_searchResults.value.firstOrNull()?.name}")
+        Log.d("FoodViewModelFilter", "Filtrando por la consulta: '$query'. Se encontraron ${_searchResults.value.size} resultados. Primer resultado (si existe): ${_searchResults.value.firstOrNull()?.name}")
     }
 
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
-        Log.d("FoodViewModelSearch", "Search query changed to: '$query'")
+        Log.d("FoodViewModelSearch", "La consulta de búsqueda cambió a: '$query'")
     }
 
     private fun calculateDailyTotals(entries: List<ConsumedFoodEntry>) {
@@ -354,14 +354,14 @@ class FoodViewModel(private val stepCounterRepository: StepCounterRepository) : 
             _currentDay.value = date
             fetchConsumedFoodEntries(date)
             _errorMessage.value = null
-            Log.d("FoodViewModel", "User selected date: $date. Fetching entries for this date.")
+            Log.d("FoodViewModel", "El usuario seleccionó la fecha: $date. Obteniendo entradas para esta fecha.")
         }
     }
 
     override fun onCleared() {
         super.onCleared()
         consumedEntriesListener?.remove()
-        Log.d("FoodViewModelLifecycle", "FoodViewModel cleared. Firestore listener removed.")
+        Log.d("FoodViewModelLifecycle", "FoodViewModel limpiado. Escuchador de Firestore eliminado.")
     }
 }
 

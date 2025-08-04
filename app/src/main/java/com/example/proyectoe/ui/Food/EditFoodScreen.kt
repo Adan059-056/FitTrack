@@ -35,7 +35,7 @@ fun EditFoodScreen(
     foodItemId: String,
     onBack: () -> Unit = {},
     onFoodUpdated: () -> Unit = {},
-    foodViewModel: FoodViewModel = viewModel()
+    foodViewModel: FoodViewModel
 ) {
     //colores
     val darkBlueBlack = Color(0xFF0A0E21)

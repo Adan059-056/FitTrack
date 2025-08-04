@@ -23,7 +23,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     private var saveStepsJob: Job? = null
 
-    // Ahora es un LiveData para que su valor pueda cambiar
+    //liveData para que su valor pueda cambiar
     private val _dailyStepGoal = MutableLiveData(10000)
     val dailyStepGoal: LiveData<Int> = _dailyStepGoal
 
@@ -38,7 +38,6 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     val stepProgressPercentage: LiveData<Float> = currentSteps.map { steps ->
-        // Usa el valor dinámico del objetivo de pasos
         val goal = dailyStepGoal.value ?: 10000
         if (goal > 0) (steps.toFloat() / goal.toFloat()) * 100f else 0f
     }
@@ -57,7 +56,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
         viewModelScope.launch {
             try {
-                // 1. Cargar los datos del usuario, incluyendo el objetivo
+                // carga los datos del usuario, incluyendo el objetivo
                 val userDoc = db.collection("usuarios").document(userId).get().await()
                 if (userDoc.exists()) {
                     val objetivo = userDoc.getString("objetivo") ?: "Mantener peso"
@@ -67,7 +66,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 println("Error al cargar datos del usuario para el dashboard: $e")
             }
 
-            // 2. Escuchar los cambios en los pasos
+            // escucha los cambios en los pasos
             db.collection("usuarios").document(userId)
                 .addSnapshotListener { snapshot, e ->
                     if (e != null) {
@@ -101,7 +100,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    // NUEVA FUNCIÓN: Lógica para calcular el objetivo de pasos
+    // para calcular el objetivo de pasos segun los objetivos
     private fun calculateStepsGoal(objetivo: String) {
         val newGoal = when (objetivo) {
             "Perder peso" -> 12000
